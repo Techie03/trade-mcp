@@ -8,16 +8,23 @@ const SSE_ENDPOINT = `${ENDPOINT_ORIGIN}/sse`;
 const configs = {
   claude: {
     path: "%APPDATA%\\Claude\\claude_desktop_config.json",
+    tip: "Claude Desktop does not natively support direct remote URLs. We use <strong>mcp-remote</strong> via <code>npx</code> to bridge the remote SSE connection over a local stdio stream.",
     content: () => `{
   "mcpServers": {
-    "trade-mcp": {
-      "url": "${SSE_ENDPOINT}"
+    "trade-mcp-remote": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "${SSE_ENDPOINT}"
+      ]
     }
   }
 }`
   },
   cursor: {
     path: "%USERPROFILE%\\.cursor\\mcp.json",
+    tip: "In Cursor Settings → Models → MCP: Click <strong>+ Add New MCP Server</strong>, choose <strong>Streamable HTTP</strong> as the type, and enter <code>${SSE_ENDPOINT}</code> as the URL.",
     content: () => `{
   "mcpServers": {
     "trade-mcp": {
@@ -28,6 +35,7 @@ const configs = {
   },
   windsurf: {
     path: "~/.codeium/windsurf/mcp_config.json",
+    tip: "In Windsurf, you can also configure this through the UI: click the MCP gear icon, add a new server, choose <strong>SSE</strong> transport type, and paste <code>${SSE_ENDPOINT}</code>.",
     content: () => `{
   "mcpServers": {
     "trade-mcp": {
@@ -38,6 +46,7 @@ const configs = {
   },
   zed: {
     path: "~/.config/zed/settings.json",
+    tip: "Zed Editor natively supports SSE-based MCP servers directly through your JSON settings file.",
     content: () => `{
   "context_servers": {
     "trade-mcp": {
@@ -48,6 +57,7 @@ const configs = {
   },
   continue: {
     path: "~/.continue/config.json",
+    tip: "Continue supports SSE transport natively. Ensure you specify the transport type as <code>sse</code> and paste the remote URL.",
     content: () => `{
   "experimental": {
     "modelContextProtocolServers": [
@@ -158,6 +168,7 @@ function updateConfigDisplay() {
   if (configs[activeClient]) {
     codePath.textContent = configs[activeClient].path;
     codeBlock.textContent = configs[activeClient].content();
+    document.getElementById('tip-text').innerHTML = configs[activeClient].tip;
   }
 }
 

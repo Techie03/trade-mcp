@@ -130,7 +130,54 @@ npm run build
 
 Configure the server in your favorite editor/client.
 
-### 1. Cursor
+### ⚡ Direct Remote SSE Connection (No Installation Required)
+
+You can connect directly to the active remote server instance **`https://nishith374-stock-mcp.hf.space/sse`** immediately without cloning the code or compiling it locally!
+
+#### 1. Cursor (Via Settings UI)
+1. Navigate to **Cursor Settings** → **Models** → **MCP**.
+2. Click **+ Add New MCP Server**.
+3. Enter Name: `trade-mcp`
+4. Choose Type: **`Streamable HTTP`**
+5. Paste URL: `https://nishith374-stock-mcp.hf.space/sse`
+6. Click **Save**.
+
+#### 2. Cursor (Via Config JSON)
+Update your global `mcp.json` file (typically in `%APPDATA%\Cursor\User\mcp.json` or `~/.config/Cursor/User/mcp.json`):
+```json
+{
+  "mcpServers": {
+    "trade-mcp": {
+      "url": "https://nishith374-stock-mcp.hf.space/sse"
+    }
+  }
+}
+```
+
+#### 3. Claude Desktop
+Update your `claude_desktop_config.json` file:
+```json
+{
+  "mcpServers": {
+    "trade-mcp-remote": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://nishith374-stock-mcp.hf.space/sse"
+      ]
+    }
+  }
+}
+```
+
+---
+
+### 💻 Local Installation & Config
+
+If you choose to clone, compile, and run the server locally on your machine:
+
+#### 1. Cursor (Local)
 Copy the configuration block to your **global Cursor configuration file**:
 - **Windows**: `%APPDATA%\Cursor\User\mcp.json`
 - **macOS/Linux**: `~/.config/Cursor/User/mcp.json`
