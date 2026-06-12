@@ -8,7 +8,9 @@ const SSE_ENDPOINT = "https://nishith374-stock-mcp.hf.space/sse";
 const configs = {
   claude: {
     path: "%APPDATA%\\Claude\\claude_desktop_config.json",
-    tip: "Claude Desktop does not natively support direct remote URLs. We use <strong>mcp-remote</strong> via <code>npx</code> to bridge the remote SSE connection over a local stdio stream.",
+    tip: "Claude Desktop does not natively support direct remote URLs. We use <strong>mcp-remote</strong> via <code>npx</code> to bridge the remote SSE connection over a local stdio stream. Alternatively, you can add it directly to Claude.ai using the browser-based custom connectors.",
+    visual: "https://raw.githubusercontent.com/Techie03/trade-mcp/assets/public/claude_mcp.png",
+    visualTitle: "Visual Setup Guide (Claude.ai Custom Connectors)",
     content: () => `{
   "mcpServers": {
     "trade-mcp-remote": {
@@ -25,6 +27,8 @@ const configs = {
   cursor: {
     path: "%USERPROFILE%\\.cursor\\mcp.json",
     tip: "In Cursor Settings → Models → MCP: Click <strong>+ Add New MCP Server</strong>, choose <strong>Streamable HTTP</strong> as the type, and enter <code>${SSE_ENDPOINT}</code> as the URL.",
+    visual: "https://raw.githubusercontent.com/Techie03/trade-mcp/assets/public/codex_mcp.png",
+    visualTitle: "Visual Setup Guide (Codex / Cursor Settings)",
     content: () => `{
   "mcpServers": {
     "trade-mcp": {
@@ -36,6 +40,8 @@ const configs = {
   windsurf: {
     path: "~/.codeium/windsurf/mcp_config.json",
     tip: "In Windsurf, you can also configure this through the UI: click the MCP gear icon, add a new server, choose <strong>SSE</strong> transport type, and paste <code>${SSE_ENDPOINT}</code>.",
+    visual: "https://raw.githubusercontent.com/Techie03/trade-mcp/assets/public/codex_mcp.png",
+    visualTitle: "Visual Setup Guide (Windsurf Settings UI)",
     content: () => `{
   "mcpServers": {
     "trade-mcp": {
@@ -47,6 +53,8 @@ const configs = {
   zed: {
     path: "~/.config/zed/settings.json",
     tip: "Zed Editor natively supports SSE-based MCP servers directly through your JSON settings file.",
+    visual: null,
+    visualTitle: "",
     content: () => `{
   "context_servers": {
     "trade-mcp": {
@@ -58,6 +66,8 @@ const configs = {
   continue: {
     path: "~/.continue/config.json",
     tip: "Continue supports SSE transport natively. Ensure you specify the transport type as <code>sse</code> and paste the remote URL.",
+    visual: null,
+    visualTitle: "",
     content: () => `{
   "experimental": {
     "modelContextProtocolServers": [
@@ -169,6 +179,15 @@ function updateConfigDisplay() {
     codePath.textContent = configs[activeClient].path;
     codeBlock.textContent = configs[activeClient].content();
     document.getElementById('tip-text').innerHTML = configs[activeClient].tip;
+
+    const visualBlock = document.getElementById('config-visual');
+    if (configs[activeClient].visual) {
+      visualBlock.style.display = 'flex';
+      document.getElementById('visual-title').textContent = configs[activeClient].visualTitle;
+      document.getElementById('visual-img').src = configs[activeClient].visual;
+    } else {
+      visualBlock.style.display = 'none';
+    }
   }
 }
 

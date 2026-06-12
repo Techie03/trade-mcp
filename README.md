@@ -134,7 +134,7 @@ Configure the server in your favorite editor/client.
 
 You can connect directly to the active remote server instance **`https://nishith374-stock-mcp.hf.space/sse`** immediately without cloning the code or compiling it locally!
 
-#### 1. Cursor (Via Settings UI)
+#### 1. Codex / Cursor (Via Settings UI)
 1. Navigate to **Cursor Settings** → **Models** → **MCP**.
 2. Click **+ Add New MCP Server**.
 3. Enter Name: `trade-mcp`
@@ -142,7 +142,7 @@ You can connect directly to the active remote server instance **`https://nishith
 5. Paste URL: `https://nishith374-stock-mcp.hf.space/sse`
 6. Click **Save**.
 
-![Connect to Cursor MCP](https://raw.githubusercontent.com/Techie03/trade-mcp/assets/public/cursor_mcp.png)
+![Connect to Codex MCP](https://raw.githubusercontent.com/Techie03/trade-mcp/assets/public/codex_mcp.png)
 
 #### 2. Cursor (Via Config JSON)
 Update your global `mcp.json` file (typically in `%APPDATA%\Cursor\User\mcp.json` or `~/.config/Cursor/User/mcp.json`):
@@ -156,7 +156,16 @@ Update your global `mcp.json` file (typically in `%APPDATA%\Cursor\User\mcp.json
 }
 ```
 
-#### 3. Claude Desktop
+#### 3. Claude.ai (Via Custom Connectors UI)
+1. Open your Claude.ai account settings → **Connectors**.
+2. Click **Add custom connector**.
+3. Enter Name: `trade-mcp`
+4. Enter URL: `https://nishith374-stock-mcp.hf.space/sse`
+5. Click **Add**.
+
+![Connect to Claude MCP](https://raw.githubusercontent.com/Techie03/trade-mcp/assets/public/claude_mcp.png)
+
+#### 4. Claude Desktop (Config JSON)
 Update your `claude_desktop_config.json` file:
 ```json
 {
