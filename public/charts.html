@@ -88,40 +88,6 @@
         </button>
       </div>
 
-      <!-- AI Analyst Panel -->
-      <div class="ai-analyst-panel hidden" id="ai-analyst-panel">
-        <div class="aip-header">
-          <div class="aip-title">🤖 AI Analyst — <span id="aip-symbol">AAPL</span></div>
-          <div class="aip-tabs">
-            <button class="aip-tab active" id="tab-report">Report</button>
-            <button class="aip-tab" id="tab-chat">Interactive Chat</button>
-          </div>
-          <button id="btn-close-aip" class="btn-close-aip">&times;</button>
-        </div>
-        <div class="aip-body" id="aip-body">
-          <div id="report-tab-content" class="tab-pane-content">
-            <div class="aip-loader">
-              <div class="loading-spinner"></div>
-              <p>Running multi-agent portfolio, technical and fundamental checks via Groq LLaMA 3.3...</p>
-            </div>
-            <div class="aip-content hidden" id="aip-content">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-          
-          <div id="chat-tab-content" class="tab-pane-content hidden">
-            <div class="chat-messages-container" id="chat-messages">
-              <div class="chat-bubble assistant-msg">
-                Hello! I am your AI Market Analyst. Ask me anything about the current chart context, toggle indicators, or load different stocks. Try saying <em>"Toggle the RSI indicator and explain it"</em> or <em>"Load TSLA stock"</em>!
-              </div>
-            </div>
-            <div class="chat-input-wrapper">
-              <input type="text" id="chat-input" placeholder="Ask AI Analyst / control graph..." autocomplete="off">
-              <button id="chat-send-btn">Send</button>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- Toolbar: Timeframes + Chart Type + Indicators -->
       <div class="chart-toolbar">
@@ -208,6 +174,43 @@
       </div>
 
     </main>
+
+    <!-- AI Analyst Panel -->
+    <div class="ai-analyst-panel hidden" id="ai-analyst-panel">
+      <div class="aip-header">
+        <div class="aip-title-wrapper">
+          <div class="aip-title">🤖 AI Analyst — <span id="aip-symbol">AAPL</span></div>
+          <button id="btn-close-aip" class="btn-close-aip">&times;</button>
+        </div>
+        <div class="aip-tabs">
+          <button class="aip-tab active" id="tab-report">Report</button>
+          <button class="aip-tab" id="tab-chat">Interactive Chat</button>
+        </div>
+      </div>
+      <div class="aip-body" id="aip-body">
+        <div id="report-tab-content" class="tab-pane-content">
+          <div class="aip-loader">
+            <div class="loading-spinner"></div>
+            <p>Running multi-agent portfolio, technical and fundamental checks via Groq LLaMA 3.3...</p>
+          </div>
+          <div class="aip-content hidden" id="aip-content">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+        
+        <div id="chat-tab-content" class="tab-pane-content hidden">
+          <div class="chat-messages-container" id="chat-messages">
+            <div class="chat-bubble assistant-msg">
+              Hello! I am your AI Market Analyst. Ask me anything about the current chart context, toggle indicators, or load different stocks. Try saying <em>"Toggle the RSI indicator and explain it"</em> or <em>"Load TSLA stock"</em>!
+            </div>
+          </div>
+          <div class="chat-input-wrapper">
+            <input type="text" id="chat-input" placeholder="Ask AI Analyst / control graph..." autocomplete="off">
+            <button id="chat-send-btn">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="charts.js"></script>
