@@ -26,16 +26,16 @@ const configs = {
   },
   cursor: {
     path: "%USERPROFILE%\\.cursor\\mcp.json",
-    tip: "In Cursor Settings → Models → MCP: Click <strong>+ Add New MCP Server</strong>, choose <strong>Streamable HTTP</strong> as the type, and enter <code>${SSE_ENDPOINT}</code> as the URL.",
+    tip: `In Cursor Settings → Models → MCP: Click <strong>+ Add New MCP Server</strong>, choose <strong>Streamable HTTP</strong> as the type, and enter <code>https://nishith374-stock-mcp.hf.space/mcp</code> as the URL (recommended). Legacy SSE also supported at <code>${SSE_ENDPOINT}</code>.`,
     visual: "https://raw.githubusercontent.com/Techie03/trade-mcp/assets/public/codex_mcp.png",
     visualTitle: "Visual Setup Guide (Codex / Cursor Settings)",
     content: () => `{
   "mcpServers": {
     "trade-mcp": {
-      "url": "${SSE_ENDPOINT}"
+      "url": "https://nishith374-stock-mcp.hf.space/mcp"
     }
   }
-}`
+}` 
   },
   windsurf: {
     path: "~/.codeium/windsurf/mcp_config.json",
@@ -80,6 +80,13 @@ const configs = {
     ]
   }
 }`
+  },
+  manus: {
+    path: "Manus → Settings → MCP",
+    tip: "In Manus, go to <strong>Settings → MCP Servers</strong>, click <strong>Add Server</strong>, select <strong>Streamable HTTP</strong> as the type and paste the URL. Manus will automatically connect and load all 28 tools — <strong>no authentication required</strong>.",
+    visual: null,
+    visualTitle: "",
+    content: () => `https://nishith374-stock-mcp.hf.space/mcp`
   }
 };
 

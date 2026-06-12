@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import express from 'express';
 import cors from 'cors';
 
@@ -96,7 +97,12 @@ async function runHttp(): Promise<void> {
       status: 'ok',
       server: 'trade-mcp',
       version: '1.0.0',
-      transport: 'http/sse',
+      transports: ['sse', 'streamable-http'],
+      endpoints: {
+        sse: '/sse',
+        streamableHttp: '/mcp',
+        message: '/message',
+      },
       tools: 28,
       uptime: process.uptime(),
     });
@@ -116,6 +122,20 @@ async function runHttp(): Promise<void> {
     });
 
     await server.connect(transport);
+  });
+
+  // ── Streamable HTTP endpoint (new MCP standard — supports Manus, Cursor, etc.) ──
+  // Stateless: each request creates a fresh server instance (no session affinity required)
+  app.all('/mcp', async (req, res) => {
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined, // stateless mode
+    });
+    const server = createServer();
+    res.on('close', () => {
+      server.close().catch(() => {});
+    });
+    await server.connect(transport);
+    await transport.handleRequest(req, res, req.body);
   });
 
   // Message POST endpoint
