@@ -1,5 +1,7 @@
 // ─── Constants and Configuration ─────────────────────────────────────
-const ENDPOINT_ORIGIN = window.location.origin;
+const HF_BACKEND_URL = "https://nishith374-stock-mcp.hf.space";
+const IS_REMOTE_FRONTEND = window.location.origin.includes('vercel.app') || window.location.origin.includes('github.io');
+const ENDPOINT_ORIGIN = IS_REMOTE_FRONTEND ? HF_BACKEND_URL : window.location.origin;
 const SSE_ENDPOINT = `${ENDPOINT_ORIGIN}/sse`;
 
 // Client Config Templates
