@@ -1,0 +1,44 @@
+{
+  "name": "trade-mcp",
+  "version": "1.0.0",
+  "description": "Trading MCP Server — Worldwide stocks (US, NSE, BSE) with AI intelligence. Zero cost.",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --noEmit false",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "start:http": "cross-env MCP_TRANSPORT=http node dist/index.js",
+    "inspect": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "inspect:http": "cross-env MCP_TRANSPORT=http npx @modelcontextprotocol/inspector node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "adm-zip": "^0.5.16",
+    "axios": "^1.9.0",
+    "axios-retry": "^4.5.0",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "csv-parse": "^5.6.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "node-cache": "^5.1.2",
+    "openai": "^4.103.0",
+    "xml2js": "^0.6.2",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.29",
+    "@types/xml2js": "^0.4.14",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": ["mcp", "trading", "stocks", "nse", "india", "finance", "ai"],
+  "license": "MIT"
+}

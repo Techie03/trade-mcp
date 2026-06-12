@@ -1,0 +1,30 @@
+# Dependency directories
+node_modules/
+
+# Production build outputs
+dist/
+
+# Local configuration / secrets
+.env
+configs/*_config.json
+configs/cursor_mcp.json
+configs/codex_config.toml
+configs/zed_settings.json
+configs/windsurf_mcp_config.json
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local helper scripts
+start_remote.bat
