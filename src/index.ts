@@ -5,6 +5,13 @@ import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// __dirname equivalent for ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
+const PUBLIC_DIR = path.resolve(__dirname, '..', 'public');
 
 import { registerQuoteTools }       from './tools/quotes.js';
 import { registerHistoricalTools }  from './tools/historical.js';
@@ -229,8 +236,16 @@ async function runHttp(): Promise<void> {
     res.end(img);
   });
 
-  // Serve static files from 'public' folder
-  app.use(express.static('public'));
+  // Serve static files from 'public' folder (absolute path — works in any working directory)
+  app.use(express.static(PUBLIC_DIR));
+
+  // Explicit route for charts page
+  app.get('/charts.html', (_req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'charts.html'));
+  });
+  app.get('/charts', (_req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'charts.html'));
+  });
 
   app.listen(port, () => {
     printBanner();
