@@ -20,6 +20,15 @@
   <!-- Mobile Sidebar Backdrop -->
   <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
+  <!-- Top Indices sliding ticker tape -->
+  <div class="ticker-tape" style="height: 28px; background: #020204; border-bottom: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; position: relative; z-index: 105;">
+    <div class="ticker-wrap" style="width: 100%; overflow: hidden;">
+      <div class="ticker-items" id="ticker-items" style="display: flex; white-space: nowrap; animation: ticker 45s linear infinite; gap: 30px; padding-left: 100%;">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </div>
+
   <!-- Header -->
   <header class="charts-header">
     <div class="header-left">
@@ -60,6 +69,18 @@
       <!-- Watchlist -->
       <div class="watchlist-header">Watchlist</div>
       <div class="watchlist" id="watchlist"></div>
+
+      <!-- Top Stock Picks & Movers -->
+      <div class="movers-sidebar-box" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 10px;">
+        <div class="watchlist-header" style="padding-top:0;">Top Movers</div>
+        <div style="display:flex; gap:6px; margin: 0 12px 8px 12px; border-bottom:1px solid var(--border);">
+          <div class="ws-btn active" id="sidebar-tab-gainers" style="flex:1; text-align:center; font-size:10px; font-weight:700; cursor:pointer; color:var(--green); padding: 4px 0;">Gainers</div>
+          <div class="ws-btn" id="sidebar-tab-losers" style="flex:1; text-align:center; font-size:10px; font-weight:700; cursor:pointer; color:var(--red); padding: 4px 0;">Losers</div>
+        </div>
+        <div class="movers-list" id="sidebar-movers-list" style="max-height: 250px; overflow-y: auto;">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
     </aside>
 
     <!-- Center + Right: Chart Area -->
@@ -81,6 +102,10 @@
           <div class="sib-stat"><span class="sib-stat-label">52W Low</span><span id="sib-52l">—</span></div>
           <div class="sib-stat"><span class="sib-stat-label">Volume</span><span id="sib-vol">—</span></div>
           <div class="sib-stat"><span class="sib-stat-label">Std Dev</span><span id="sib-stddev">—</span></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <input type="number" id="alert-price-input" placeholder="Alert price..." style="background:#000; border:1px solid var(--border); border-radius:6px; color:#fff; font-size:11px; padding:6px 10px; width:95px; outline:none;">
+          <button id="alert-add-btn" class="search-go-btn" style="padding: 6px 10px;">Set Alert</button>
         </div>
         <button id="btn-ai-analyze" class="btn-ai-analyze">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -115,6 +140,25 @@
               Area
             </button>
           </div>
+          <!-- Drawing Tools -->
+          <div class="drawing-tools-group" style="display: flex; align-items: center; gap: 2px; background: var(--bg-card); border-radius: 6px; padding: 2px; margin-left: 8px;">
+            <button class="ct-btn active" id="tool-select" title="Cursor select">🖱️ Select</button>
+            <button class="ct-btn" id="tool-trendline" title="Trendline Tool">📏 Trend</button>
+            <button class="ct-btn" id="tool-horizontal" title="Horizontal Line">➖ Horiz</button>
+            <button class="ct-btn" id="tool-fib" title="Fibonacci Retracement">🧬 Fib</button>
+            <button class="ct-btn" id="tool-clear" title="Clear Drawings" style="color:var(--red);">🗑️ Clear</button>
+          </div>
+
+          <!-- Bar Replay -->
+          <div class="replay-replay-group" style="display: flex; align-items: center; gap: 2px; background: var(--bg-card); border-radius: 6px; padding: 2px; margin-left: 8px;">
+            <button class="ct-btn" id="replay-toggle" title="Toggle Bar Replay Mode">🎞️ Replay</button>
+            <button class="ct-btn hidden" id="replay-back" title="Step Back">◀</button>
+            <button class="ct-btn hidden" id="replay-play" title="Play">▶ Play</button>
+            <button class="ct-btn hidden" id="replay-forward" title="Step Forward">▶</button>
+          </div>
+
+          <!-- Export CSV -->
+          <button class="btn-export-csv" id="btn-csv-export" style="background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text-muted); font-size:11px; padding:4px 10px; cursor:pointer; margin-left:8px;">📥 CSV</button>
         </div>
         <div class="toolbar-right indicators-toggle-group">
           <span class="indicator-label">Indicators:</span>
@@ -138,9 +182,12 @@
       </div>
 
       <!-- Main Candlestick / Line Chart -->
-      <div class="chart-pane-wrapper">
+      <div class="chart-pane-wrapper" style="position: relative;">
         <div class="chart-pane-label">Price</div>
-        <div id="main-chart" class="chart-pane main-pane"></div>
+        <div id="main-chart-container" style="position: relative; width: 100%; height: 100%;">
+          <div id="main-chart" class="chart-pane main-pane"></div>
+          <canvas id="drawing-canvas-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; cursor: crosshair;"></canvas>
+        </div>
       </div>
 
       <!-- Volume Pane -->

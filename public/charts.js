@@ -6,6 +6,17 @@ const API_BASE = window.location.origin.includes('localhost') || window.location
   ? window.location.origin
   : 'https://nishith374-stock-mcp.hf.space';
 
+// ─── Drawing Tools, Replay & Alerts State ─────────────────────────────────────
+let activeDrawingTool = 'select';
+let drawings = [];
+let currentDrawing = null;
+let priceAlerts = [];
+
+let replayActive = false;
+let replayIndex = 0;
+let replayTimer = null;
+let replaySpeed = 1000;
+
 // ─── Indicator Math ───────────────────────────────────────────────────────────
 
 function calcEMA(values, period) {
@@ -250,6 +261,7 @@ function initCharts() {
   mainChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
     if (!range) return;
     allCharts.filter(c => c !== mainChart).forEach(c => c.timeScale().setVisibleLogicalRange(range));
+    if (typeof drawAllShapes === 'function') drawAllShapes();
   });
 
   // Resize observer
@@ -260,8 +272,18 @@ function initCharts() {
         c.resize(el.parentElement.clientWidth, el.parentElement.clientHeight);
       }
     });
+
+    const canvas = document.getElementById('drawing-canvas-overlay');
+    const container = document.getElementById('main-chart-container');
+    if (canvas && container) {
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+      if (typeof drawAllShapes === 'function') drawAllShapes();
+    }
   });
   document.querySelectorAll('.chart-pane').forEach(el => ro.observe(el));
+  
+  if (typeof initDrawingCanvas === 'function') initDrawingCanvas();
 }
 
 // ─── Render Charts with Data ──────────────────────────────────────────────────
@@ -500,8 +522,42 @@ function updateInfoBar(q) {
 
 // ─── Watchlist ────────────────────────────────────────────────────────────────
 
-const WATCHLIST = [];
-const WATCHLIST_SYMBOLS = [];
+const WATCHLIST = [
+  // US Stocks
+  { symbol: 'AAPL', name: 'Apple Inc.' },
+  { symbol: 'MSFT', name: 'Microsoft Corp.' },
+  { symbol: 'NVDA', name: 'NVIDIA Corp.' },
+  { symbol: 'TSLA', name: 'Tesla Inc.' },
+  { symbol: 'GOOGL', name: 'Alphabet Inc.' },
+  { symbol: 'AMZN', name: 'Amazon.com' },
+  { symbol: 'META', name: 'Meta Platforms' },
+  { symbol: 'NFLX', name: 'Netflix Inc.' },
+  { symbol: 'AMD', name: 'AMD' },
+  { symbol: 'AVGO', name: 'Broadcom Inc.' },
+
+  // Indian Stocks (NSE)
+  { symbol: 'RELIANCE.NS', name: 'Reliance Ind.' },
+  { symbol: 'TCS.NS', name: 'Tata Consult.' },
+  { symbol: 'INFY.NS', name: 'Infosys Ltd' },
+  { symbol: 'HDFCBANK.NS', name: 'HDFC Bank' },
+  { symbol: 'ICICIBANK.NS', name: 'ICICI Bank' },
+  { symbol: 'TATAMOTORS.NS', name: 'Tata Motors' },
+  { symbol: 'SBIN.NS', name: 'SBI Bank' },
+  { symbol: 'BHARTIARTL.NS', name: 'Bharti Airtel' },
+
+  // Crypto
+  { symbol: 'BTC-USD', name: 'Bitcoin' },
+  { symbol: 'ETH-USD', name: 'Ethereum' },
+  { symbol: 'SOL-USD', name: 'Solana' },
+
+  // Forex & Indices
+  { symbol: 'EURUSD=X', name: 'EUR/USD' },
+  { symbol: '^NSEI', name: 'Nifty 50' },
+  { symbol: '^GSPC', name: 'S&P 500' }
+];
+
+const WATCHLIST_SYMBOLS = WATCHLIST.map(w => w.symbol);
+
 
 function renderWatchlist() {
   const wlContainer = document.getElementById('watchlist');
@@ -583,6 +639,7 @@ function startRealtimeUpdates(symbol) {
       }
 
       updateInfoBar(q);
+      if (typeof checkAlerts === 'function') checkAlerts(q.price);
 
       // Update the last candle on the chart!
       if (activeCandles && activeCandles.length > 0 && mainSeries) {
@@ -654,6 +711,318 @@ function startRealtimeUpdates(symbol) {
       console.error('Realtime update fetch error:', err);
     }
   }, 4000); // Poll every 4 seconds for a snappy, real-time feel
+}
+
+// ─── Drawing Canvas Overlay Engine ───────────────────────────────────────────
+function initDrawingCanvas() {
+  const canvas = document.getElementById('drawing-canvas-overlay');
+  const container = document.getElementById('main-chart-container');
+  if (!canvas || !container) return;
+
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
+
+  // Clear and redraw drawings whenever timescale or price scale changes
+  if (mainChart) {
+    mainChart.timeScale().subscribeVisibleLogicalRangeChange(() => drawAllShapes());
+  }
+
+  canvas.addEventListener('mousedown', (e) => {
+    if (activeDrawingTool === 'select') return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const time = mainChart.timeScale().coordinateToTime(x);
+    const price = mainSeries.coordinateToPrice(y);
+
+    if (time && price) {
+      if (activeDrawingTool === 'trendline') {
+        currentDrawing = { type: 'trendline', points: [{ time, price }, { time, price }] };
+      } else if (activeDrawingTool === 'horizontal') {
+        drawings.push({ type: 'horizontal', points: [{ time, price }] });
+        drawAllShapes();
+      } else if (activeDrawingTool === 'fib') {
+        currentDrawing = { type: 'fib', points: [{ time, price }, { time, price }] };
+      }
+    }
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (!currentDrawing) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const time = mainChart.timeScale().coordinateToTime(x);
+    const price = mainSeries.coordinateToPrice(y);
+
+    if (time && price) {
+      currentDrawing.points[1] = { time, price };
+      drawAllShapes();
+    }
+  });
+
+  canvas.addEventListener('mouseup', () => {
+    if (currentDrawing) {
+      drawings.push(currentDrawing);
+      currentDrawing = null;
+      drawAllShapes();
+    }
+  });
+}
+
+function drawAllShapes() {
+  const canvas = document.getElementById('drawing-canvas-overlay');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const drawShape = (shape) => {
+    if (shape.type === 'trendline') {
+      const p1 = shape.points[0];
+      const p2 = shape.points[1];
+      const x1 = mainChart.timeScale().timeToCoordinate(p1.time);
+      const y1 = mainSeries.priceToCoordinate(p1.price);
+      const x2 = mainChart.timeScale().timeToCoordinate(p2.time);
+      const y2 = mainSeries.priceToCoordinate(p2.price);
+
+      if (x1 !== null && y1 !== null && x2 !== null && y2 !== null) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = '#0a84ff';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = 'rgba(10, 132, 255, 0.4)';
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+        ctx.shadowBlur = 0; // reset
+      }
+    } else if (shape.type === 'horizontal') {
+      const p = shape.points[0];
+      const y = mainSeries.priceToCoordinate(p.price);
+      if (y !== null) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.strokeStyle = '#ffd60a';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    } else if (shape.type === 'fib') {
+      const p1 = shape.points[0];
+      const p2 = shape.points[1];
+      const y1 = mainSeries.priceToCoordinate(p1.price);
+      const y2 = mainSeries.priceToCoordinate(p2.price);
+      const x1 = mainChart.timeScale().timeToCoordinate(p1.time);
+      const x2 = mainChart.timeScale().timeToCoordinate(p2.time);
+
+      if (y1 !== null && y2 !== null && x1 !== null && x2 !== null) {
+        const diff = p2.price - p1.price;
+        const levels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1.0];
+        const colors = ['#ff453a', '#ff9f0a', '#ffd60a', '#30d158', '#64d2ff', '#0a84ff', '#af52de'];
+
+        levels.forEach((lvl, idx) => {
+          const priceLvl = p1.price + diff * lvl;
+          const yLvl = mainSeries.priceToCoordinate(priceLvl);
+          if (yLvl !== null) {
+            ctx.beginPath();
+            ctx.moveTo(Math.min(x1, x2), yLvl);
+            ctx.lineTo(Math.max(x1, x2), yLvl);
+            ctx.strokeStyle = colors[idx];
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.fillStyle = colors[idx];
+            ctx.font = '9px monospace';
+            ctx.fillText(`${(lvl * 100).toFixed(1)}% (${priceLvl.toFixed(2)})`, Math.max(x1, x2) + 5, yLvl + 3);
+          }
+        });
+      }
+    }
+  };
+
+  drawings.forEach(drawShape);
+  if (currentDrawing) drawShape(currentDrawing);
+}
+
+// ─── Toast System ────────────────────────────────────────────────────────────
+function showToast(message, type = 'blue') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = `toast-item ${type}`;
+  toast.innerHTML = `<span>⚡</span> ${message}`;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.animation = 'slideIn 0.25s ease-out reverse';
+    setTimeout(() => toast.remove(), 250);
+  }, 4000);
+}
+
+// ─── Price Alerts Engine ─────────────────────────────────────────────────────
+function setPriceAlert(targetPrice) {
+  if (isNaN(targetPrice) || targetPrice <= 0) return;
+  priceAlerts.push({ symbol: activeSymbol, price: targetPrice, triggered: false });
+  showToast(`Alert set for ${activeSymbol} at $${targetPrice}`, 'blue');
+}
+
+function checkAlerts(currentPrice) {
+  priceAlerts.forEach(alert => {
+    if (alert.symbol === activeSymbol && !alert.triggered) {
+      if (Math.abs(currentPrice - alert.price) / alert.price < 0.005) {
+        alert.triggered = true;
+        showToast(`ALERT: ${alert.symbol} crossed Target Price of $${alert.price}!`, 'green');
+        if (Notification.permission === 'granted') {
+          new Notification(`Price Alert Triggered`, { body: `${alert.symbol} is near $${alert.price}` });
+        }
+      }
+    }
+  });
+}
+
+// ─── Ticker Tape Engine ──────────────────────────────────────────────────────
+async function startTickerTape() {
+  const symbols = ['^NSEI', '^GSPC', '^IXIC', 'BTC-USD', 'EURUSD=X'];
+  try {
+    const resp = await fetch(`${API_BASE}/api/ticker?symbols=${symbols.join(',')}`);
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const container = document.getElementById('ticker-items');
+    if (!container) return;
+    container.innerHTML = (data.quotes || []).map(q => {
+      if (!q) return '';
+      const isUp = q.changePercent >= 0;
+      return `
+        <div class="ticker-item clickable" onclick="loadSymbol('${q.symbol}')" style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 500; cursor: pointer;">
+          <span class="ticker-sym" style="color: var(--text); font-weight: 700;">${q.symbol.replace('^', '')}</span>
+          <span class="ticker-val" style="color: var(--text-2);">${q.price.toLocaleString()}</span>
+          <span class="ticker-pct ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${q.changePercent.toFixed(2)}%</span>
+        </div>
+      `;
+    }).join('');
+  } catch {}
+}
+
+// ─── Movers List (Gainers & Losers) ──────────────────────────────────────────
+async function fetchMovers(type = 'gainers') {
+  const symbols = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'TSLA', 'META', 'RELIANCE.NS', 'TCS.NS', 'INFY.NS'];
+  try {
+    const resp = await fetch(`${API_BASE}/api/ticker?symbols=${symbols.join(',')}`);
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const sorted = (data.quotes || []).filter(Boolean).sort((a, b) => b.changePercent - a.changePercent);
+
+    const list = document.getElementById('sidebar-movers-list');
+    if (!list) return;
+    const displayList = type === 'gainers' ? sorted.slice(0, 5) : sorted.reverse().slice(0, 5);
+
+    list.innerHTML = displayList.map(q => {
+      const isUp = q.changePercent >= 0;
+      return `
+        <div class="mover-item" onclick="loadSymbol('${q.symbol}')">
+          <div class="mover-left">
+            <span class="mover-sym">${q.symbol}</span>
+            <span class="mover-name">${q.name || ''}</span>
+          </div>
+          <div class="mover-right">
+            <span class="mover-price">${q.price.toFixed(2)}</span>
+            <span class="mover-change ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${q.changePercent.toFixed(2)}%</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch {}
+}
+
+// ─── Export CSV Engine ───────────────────────────────────────────────────────
+function exportToCSV() {
+  if (!activeCandles || activeCandles.length === 0) return;
+  const headers = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume'];
+  const rows = activeCandles.map(c => [
+    c.date,
+    c.open,
+    c.high,
+    c.low,
+    c.close,
+    c.volume
+  ]);
+
+  const csvContent = "data:text/csv;charset=utf-8," 
+    + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+  
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `${activeSymbol}_historical_data.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast(`CSV data exported successfully`, 'green');
+}
+
+// ─── Bar Replay Player ───────────────────────────────────────────────────────
+function toggleReplayMode() {
+  replayActive = !replayActive;
+  const btn = document.getElementById('replay-toggle');
+  
+  if (replayActive) {
+    btn.classList.add('active');
+    document.getElementById('replay-back').classList.remove('hidden');
+    document.getElementById('replay-play').classList.remove('hidden');
+    document.getElementById('replay-forward').classList.remove('hidden');
+
+    // Rewind back to middle
+    replayIndex = Math.floor(activeCandles.length * 0.7);
+    updateReplayFrame();
+    showToast('Bar Replay mode activated. Click Play to start.', 'blue');
+  } else {
+    btn.classList.remove('active');
+    document.getElementById('replay-back').classList.add('hidden');
+    document.getElementById('replay-play').classList.add('hidden');
+    document.getElementById('replay-forward').classList.add('hidden');
+    
+    if (replayTimer) clearInterval(replayTimer);
+    displayCandles = [...activeCandles];
+    renderCharts(displayCandles);
+    showToast('Bar Replay mode deactivated', 'blue');
+  }
+}
+
+function updateReplayFrame() {
+  displayCandles = activeCandles.slice(0, replayIndex);
+  renderCharts(displayCandles);
+}
+
+function stepForward() {
+  if (replayIndex < activeCandles.length) {
+    replayIndex++;
+    updateReplayFrame();
+  } else {
+    clearInterval(replayTimer);
+  }
+}
+
+function stepBackward() {
+  if (replayIndex > 5) {
+    replayIndex--;
+    updateReplayFrame();
+  }
+}
+
+function toggleReplayPlayback() {
+  const playBtn = document.getElementById('replay-play');
+  if (replayTimer) {
+    clearInterval(replayTimer);
+    replayTimer = null;
+    playBtn.textContent = '▶ Play';
+  } else {
+    replayTimer = setInterval(stepForward, replaySpeed);
+    playBtn.textContent = '⏸ Pause';
+  }
 }
 
 // ─── Event Listeners ──────────────────────────────────────────────────────────
@@ -1200,6 +1569,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
   chatSendBtn.addEventListener('click', sendChatMessage);
   chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendChatMessage(); });
+
+  // ─── Ticker tape & movers ───
+  startTickerTape();
+  fetchMovers('gainers');
+  setInterval(startTickerTape, 12000);
+
+  // Tab listeners for Daily Movers
+  const tabGainers = document.getElementById('sidebar-tab-gainers');
+  const tabLosers = document.getElementById('sidebar-tab-losers');
+  tabGainers.addEventListener('click', () => {
+    tabGainers.classList.add('active');
+    tabLosers.classList.remove('active');
+    fetchMovers('gainers');
+  });
+  tabLosers.addEventListener('click', () => {
+    tabLosers.classList.add('active');
+    tabGainers.classList.remove('active');
+    fetchMovers('losers');
+  });
+
+  // ─── Drawing Tools ───
+  const tools = ['select', 'trendline', 'horizontal', 'fib'];
+  tools.forEach(tool => {
+    const el = document.getElementById(`tool-${tool}`);
+    if (el) {
+      el.addEventListener('click', () => {
+        tools.forEach(t => document.getElementById(`tool-${t}`).classList.remove('active'));
+        el.classList.add('active');
+        activeDrawingTool = tool;
+
+        const overlay = document.getElementById('drawing-canvas-overlay');
+        if (overlay) {
+          overlay.style.pointerEvents = (tool === 'select') ? 'none' : 'auto';
+        }
+      });
+    }
+  });
+
+  const clearBtn = document.getElementById('tool-clear');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      drawings = [];
+      drawAllShapes();
+      showToast('Drawings cleared', 'blue');
+    });
+  }
+
+  // ─── Bar Replay Player ───
+  document.getElementById('replay-toggle').addEventListener('click', toggleReplayMode);
+  document.getElementById('replay-back').addEventListener('click', stepBackward);
+  document.getElementById('replay-forward').addEventListener('click', stepForward);
+  document.getElementById('replay-play').addEventListener('click', toggleReplayPlayback);
+
+  // ─── Price Alerts ───
+  document.getElementById('alert-add-btn').addEventListener('click', () => {
+    const input = document.getElementById('alert-price-input');
+    const price = parseFloat(input.value);
+    setPriceAlert(price);
+    input.value = '';
+  });
+
+  // ─── CSV Downloader ───
+  document.getElementById('btn-csv-export').addEventListener('click', exportToCSV);
 
   // Initial load - load chart but do not add to watchlist on start
   loadSymbol('AAPL', '3mo', '1d', false);
