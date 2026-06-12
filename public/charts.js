@@ -516,7 +516,7 @@ function startRealtimeUpdates(symbol) {
 
 // ─── Event Listeners ──────────────────────────────────────────────────────────
 
-function loadSymbol(symbol, range, interval) {
+function loadSymbol(symbol, range, interval, addToWatchlist = true) {
   activeSymbol = symbol;
   activeRange = range || activeRange;
   activeInterval = interval || activeInterval;
@@ -531,7 +531,7 @@ function loadSymbol(symbol, range, interval) {
   if (aiPanel) aiPanel.classList.add('hidden');
 
   // Add symbol dynamically if not in watchlist
-  if (!WATCHLIST_SYMBOLS.includes(symbol)) {
+  if (addToWatchlist && !WATCHLIST_SYMBOLS.includes(symbol)) {
     WATCHLIST.unshift({ symbol, name: symbol });
     WATCHLIST_SYMBOLS.unshift(symbol);
     renderWatchlist();
@@ -753,8 +753,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Initial load
-  loadSymbol('AAPL', '3mo', '1d');
+  // Initial load - load chart but do not add to watchlist on start
+  loadSymbol('AAPL', '3mo', '1d', false);
   loadWatchlistPrices();
   setInterval(loadWatchlistPrices, 30000);
 });
