@@ -205,6 +205,24 @@ async function runHttp(): Promise<void> {
     }
   });
 
+  // ── REST API: Search for symbols (autocomplete) ──────────────────────────────
+  app.get('/api/search', async (req, res) => {
+    try {
+      const query = (req.query.q as string) || '';
+      if (!query) {
+        res.json([]);
+        return;
+      }
+      const { searchSymbol } = await import('./providers/yahoo.js');
+      const results = await searchSymbol(query);
+      res.json(results);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: message });
+    }
+  });
+
+
 
   app.get('/', (req, res, next) => {
     if (req.headers.accept?.includes('application/json')) {

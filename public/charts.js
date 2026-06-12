@@ -428,15 +428,73 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Symbol search
+  // Symbol search and autocomplete suggestions
   const input = document.getElementById('symbol-input');
   const btn = document.getElementById('search-btn');
+  const suggestionsList = document.getElementById('search-suggestions');
+
+  let debounceTimer;
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const val = input.value.trim();
+    if (!val) {
+      suggestionsList.innerHTML = '';
+      suggestionsList.classList.add('hidden');
+      return;
+    }
+    debounceTimer = setTimeout(async () => {
+      try {
+        const resp = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(val)}`);
+        if (!resp.ok) return;
+        const suggestions = await resp.json();
+        if (suggestions.length === 0) {
+          suggestionsList.innerHTML = '';
+          suggestionsList.classList.add('hidden');
+          return;
+        }
+        suggestionsList.innerHTML = suggestions.map(s => `
+          <div class="suggestion-item" data-symbol="${s.symbol}">
+            <span class="sym">${s.symbol}</span>
+            <span class="exch">${s.exchange || ''}</span>
+          </div>
+        `).join('');
+        suggestionsList.classList.remove('hidden');
+
+        // Click suggestions
+        suggestionsList.querySelectorAll('.suggestion-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const sym = item.dataset.symbol;
+            loadSymbol(sym);
+            input.value = '';
+            suggestionsList.innerHTML = '';
+            suggestionsList.classList.add('hidden');
+          });
+        });
+      } catch (err) {
+        console.error('Suggestions error:', err);
+      }
+    }, 200);
+  });
+
+  // Hide suggestions when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !suggestionsList.contains(e.target)) {
+      suggestionsList.classList.add('hidden');
+    }
+  });
+
   const submit = () => {
     const val = input.value.trim().toUpperCase();
-    if (val) { loadSymbol(val); input.value = ''; }
+    if (val) {
+      loadSymbol(val);
+      input.value = '';
+      suggestionsList.innerHTML = '';
+      suggestionsList.classList.add('hidden');
+    }
   };
   btn.addEventListener('click', submit);
   input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+
 
   // Initial load
   loadSymbol('AAPL', '3mo', '1d');
