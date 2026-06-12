@@ -86,6 +86,9 @@ async function runHttp(): Promise<void> {
 
   app.use(cors());
   app.use(express.json());
+  
+  // Serve static files from 'public' folder
+  app.use(express.static('public'));
 
   // Track active SSE transports by session
   const transports = new Map<string, SSEServerTransport>();
@@ -129,20 +132,24 @@ async function runHttp(): Promise<void> {
     await transport.handlePostMessage(req, res, req.body);
   });
 
-  // Info page
-  app.get('/', (_req, res) => {
-    res.json({
-      name: 'trade-mcp',
-      description: 'Worldwide Stock Market MCP Server',
-      endpoints: {
-        sse: '/sse',
-        message: '/message',
-        health: '/health',
-      },
-      tools: 28,
-      dataSources: ['Yahoo Finance', 'Alpha Vantage', 'Finnhub', 'NSE India'],
-      aiEngines: ['Groq', 'NVIDIA NIM'],
-    });
+  // Info page or fallback JSON endpoint for '/'
+  app.get('/', (req, res, next) => {
+    if (req.headers.accept?.includes('application/json')) {
+      res.json({
+        name: 'trade-mcp',
+        description: 'Worldwide Stock Market MCP Server',
+        endpoints: {
+          sse: '/sse',
+          message: '/message',
+          health: '/health',
+        },
+        tools: 28,
+        dataSources: ['Yahoo Finance', 'Alpha Vantage', 'Finnhub', 'NSE India'],
+        aiEngines: ['Groq', 'NVIDIA NIM'],
+      });
+    } else {
+      next();
+    }
   });
 
   app.listen(port, () => {

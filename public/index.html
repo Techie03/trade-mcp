@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trade MCP — Worldwide Stock Market Intelligence for LLMs</title>
+  <meta name="description" content="An elite, production-ready Model Context Protocol (MCP) server providing live global equity quotes, F&O options, EOD Bhavcopy parsing, technical indicators, and AI analysis for LLMs.">
+  <meta name="keywords" content="mcp, model context protocol, trading mcp, nse mcp, stock market mcp, ai trading, finance mcp">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Background Glows -->
+  <div class="glow-bg glow-1"></div>
+  <div class="glow-bg glow-2"></div>
+
+  <!-- Header -->
+  <header class="main-header">
+    <div class="header-container">
+      <div class="logo">
+        <span class="logo-emoji">📈</span>
+        <span class="logo-text">trade-mcp</span>
+      </div>
+      <div class="status-indicator-container">
+        <span class="status-dot blinking"></span>
+        <span id="status-text" class="status-text">Checking server connection...</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-container">
+        <div class="badge">PRO VERSION 1.0</div>
+        <h1 class="hero-title">The Stock Market Intelligence Layer for LLMs</h1>
+        <p class="hero-subtitle">
+          An elite Model Context Protocol (MCP) server equipping your AI agents (Claude, Cursor, Manus, and more) with 28 advanced market tools, live global data, and a Python execution sandbox.
+        </p>
+        <div class="hero-cta">
+          <a href="#quickstart" class="btn btn-primary">Get Config Block</a>
+          <a href="https://github.com/Techie03/trade-mcp" target="_blank" class="btn btn-secondary">
+            <svg class="icon-git" viewBox="0 0 24 24" width="18" height="18">
+              <path fill="currentColor" d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/>
+            </svg>
+            Star on GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Workspace Terminal Simulator -->
+    <section class="playground-section">
+      <div class="section-title-wrapper">
+        <h2 class="section-title">See trade-mcp in Action</h2>
+        <p class="section-desc">Select a preset below to see how Claude uses our tools in real-time to answer complex financial queries.</p>
+      </div>
+
+      <div class="playground-container">
+        <!-- Preset Selector Sidebar -->
+        <div class="presets-sidebar">
+          <button class="preset-btn active" data-scenario="us_quotes">
+            <span class="preset-icon">📊</span>
+            <div class="preset-info">
+              <span class="preset-name">US Market Quotes</span>
+              <span class="preset-sub">Yahoo Finance & Alpha Vantage</span>
+            </div>
+          </button>
+          <button class="preset-btn" data-scenario="nse_options">
+            <span class="preset-icon">🇮🇳</span>
+            <div class="preset-info">
+              <span class="preset-name">NSE India Option Chain</span>
+              <span class="preset-sub">Live F&O Derivates Parsing</span>
+            </div>
+          </button>
+          <button class="preset-btn" data-scenario="python_sandbox">
+            <span class="preset-icon">🐍</span>
+            <div class="preset-info">
+              <span class="preset-name">Python Data Science</span>
+              <span class="preset-sub">Matplotlib Backtesting Run</span>
+            </div>
+          </button>
+          <button class="preset-btn" data-scenario="ai_comparison">
+            <span class="preset-icon">🤖</span>
+            <div class="preset-info">
+              <span class="preset-name">AI Portfolio Audit</span>
+              <span class="preset-sub">Groq Multi-Stock Rating</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Simulated Terminal Panel -->
+        <div class="terminal-panel">
+          <div class="terminal-header">
+            <div class="dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <div class="terminal-title">mcp-client-workspace -- Claude 3.5 Sonnet</div>
+            <div class="terminal-actions">
+              <span class="terminal-action">28 tools loaded</span>
+            </div>
+          </div>
+          <div class="terminal-body" id="terminal-output">
+            <!-- Simulated contents dynamically loaded by app.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bento Grid Features Section -->
+    <section class="features-section">
+      <div class="section-title-wrapper">
+        <div class="section-badge">CAPABILITIES</div>
+        <h2 class="section-title">28 Tools Across 7 Modules</h2>
+        <p class="section-desc">An extensive suite of stock market intelligence pipelines compiled into clean, lightning-fast tools.</p>
+      </div>
+
+      <div class="bento-grid">
+        <!-- Card 1 -->
+        <div class="bento-card card-large gradient-border purple-glow">
+          <div class="card-icon">📈</div>
+          <h3 class="card-title">Live & Historical Market Data</h3>
+          <p class="card-desc">Fetch worldwide stock prices (including US and Indian exchanges) with real-time quote updates, historical OHLCV data spanning multiple decades, and instant symbol search queries.</p>
+          <div class="card-tags">
+            <span class="tag">get_quote</span>
+            <span class="tag">get_historical</span>
+            <span class="tag">get_market_summary</span>
+            <span class="tag">search_symbol</span>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bento-card card-medium gradient-border green-glow">
+          <div class="card-icon">🇮🇳</div>
+          <h3 class="card-title">Indian Market Specialized</h3>
+          <p class="card-desc">Deep integration with official NSE endpoints, returning options chain data, circuit limits, VWAP, corporate actions feeds, and automated unzipping/parsing of NSE Bhavcopy archives in-memory.</p>
+          <div class="card-tags">
+            <span class="tag">get_nse_quote</span>
+            <span class="tag">get_nse_option_chain</span>
+            <span class="tag">get_nse_historical</span>
+            <span class="tag">get_nse_corporate_actions</span>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bento-card card-medium gradient-border blue-glow">
+          <div class="card-icon">🐍</div>
+          <h3 class="card-title">Python Data-Science Sandbox</h3>
+          <p class="card-desc">Allows LLMs to dynamically generate and run Python analysis scripts on local directories. Supports mathematical analysis and chart generation using `pandas`, `numpy`, and `matplotlib`.</p>
+          <div class="card-tags">
+            <span class="tag">run_python_analysis</span>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="bento-card card-small gradient-border">
+          <div class="card-icon">🏢</div>
+          <h3 class="card-title">Fundamentals & Financials</h3>
+          <p class="card-desc">Income statements, balance sheets, cash flows, and key earnings metrics (Beta, P/E ratio, market cap, consensus EPS projections).</p>
+          <div class="card-tags">
+            <span class="tag">get_company_overview</span>
+            <span class="tag">get_financials</span>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="bento-card card-small gradient-border">
+          <div class="card-icon">🤖</div>
+          <h3 class="card-title">AI Market Intelligence</h3>
+          <p class="card-desc">Leverages Groq (LLaMA 3.3) and NVIDIA NIM APIs to perform stock sentiment analysis, automated trade signal generation, news digests, and portfolio audits.</p>
+          <div class="card-tags">
+            <span class="tag">analyze_sentiment</span>
+            <span class="tag">get_stock_insight</span>
+          </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="bento-card card-small gradient-border">
+          <div class="card-icon">📰</div>
+          <h3 class="card-title">Global News & Indicators</h3>
+          <p class="card-desc">Pulls real-time financial news feeds alongside technical indicators like RSI, MACD, Bollinger Bands, and Sector performance.</p>
+          <div class="card-tags">
+            <span class="tag">get_news</span>
+            <span class="tag">get_technical_indicators</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Start Config Section -->
+    <section id="quickstart" class="config-section">
+      <div class="section-title-wrapper">
+        <div class="section-badge">INTEGRATION</div>
+        <h2 class="section-title">Connect in 60 Seconds</h2>
+        <p class="section-desc">Instantly register the server with your local LLM editor or desktop client using our remote SSE connection.</p>
+      </div>
+
+      <div class="config-container">
+        <!-- Client Tab Selector -->
+        <div class="config-tabs">
+          <button class="config-tab-btn active" data-client="claude">Claude Desktop</button>
+          <button class="config-tab-btn" data-client="cursor">Cursor</button>
+          <button class="config-tab-btn" data-client="windsurf">Windsurf</button>
+          <button class="config-tab-btn" data-client="zed">Zed Editor</button>
+          <button class="config-tab-btn" data-client="continue">Continue.dev</button>
+        </div>
+
+        <!-- Config Code Block -->
+        <div class="config-code-wrapper">
+          <div class="code-header">
+            <div class="code-file-path" id="code-path">%APPDATA%\Claude\claude_desktop_config.json</div>
+            <button class="btn-copy" id="btn-copy">
+              <svg class="icon-copy" viewBox="0 0 24 24" width="16" height="16">
+                <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+              </svg>
+              Copy Config
+            </button>
+          </div>
+          <pre class="code-pre"><code class="code-content" id="code-block">Loading...</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="main-footer">
+    <div class="footer-container">
+      <p class="disclaimer">
+        Disclaimer: This server is built strictly for educational and informational purposes. None of the data, tools, or responses generated constitute financial advice. Always verify trading data independently.
+      </p>
+      <div class="footer-links">
+        <a href="https://github.com/Techie03/trade-mcp" target="_blank">GitHub</a>
+        <span class="divider">•</span>
+        <a href="https://huggingface.co/spaces/nishith374/stock-mcp" target="_blank">Hugging Face Space</a>
+        <span class="divider">•</span>
+        <a href="/health" target="_blank">API Health Status</a>
+      </div>
+      <p class="copy">Licensed under the MIT License. Built with modelcontextprotocol/sdk.</p>
+    </div>
+  </footer>
+
+  <!-- JS -->
+  <script src="app.js"></script>
+</body>
+</html>
