@@ -1022,19 +1022,124 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/\n/g, '<br>');
   }
 
+  // File attachments and Web Speech API
+  const fileInput = document.getElementById('chat-file-input');
+  const attachBtn = document.getElementById('chat-attach-btn');
+  const attachmentPreview = document.getElementById('chat-attachment-preview');
+  const micBtn = document.getElementById('chat-mic-btn');
+
+  let attachedFile = null;
+
+  attachBtn.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const extension = file.name.split('.').pop().toLowerCase();
+    attachedFile = {
+      name: file.name,
+      type: extension,
+      size: file.size,
+      content: ''
+    };
+
+    if (['csv', 'xml', 'txt', 'json'].includes(extension)) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        attachedFile.content = e.target.result;
+      };
+      reader.readAsText(file);
+    } else {
+      attachedFile.content = `[Attached Binary/Image File: name=${file.name}, size=${file.size} bytes. Direct data reading is mocked for this file type.]`;
+    }
+
+    attachmentPreview.innerHTML = `
+      <div class="cap-details">
+        📎 <strong>[${extension.toUpperCase()}]</strong> ${file.name} (${(file.size / 1024).toFixed(1)} KB)
+      </div>
+      <button class="cap-remove" id="btn-remove-attachment">&times;</button>
+    `;
+    attachmentPreview.classList.remove('hidden');
+
+    document.getElementById('btn-remove-attachment').addEventListener('click', removeAttachment);
+  });
+
+  function removeAttachment() {
+    attachedFile = null;
+    fileInput.value = '';
+    attachmentPreview.classList.add('hidden');
+    attachmentPreview.innerHTML = '';
+  }
+
+  // Web Speech API
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    let isListening = false;
+
+    micBtn.addEventListener('click', () => {
+      if (isListening) {
+        recognition.stop();
+      } else {
+        recognition.start();
+        micBtn.classList.add('active');
+        isListening = true;
+        chatInput.placeholder = "Listening...";
+      }
+    });
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      chatInput.value = (chatInput.value + ' ' + transcript).trim();
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      micBtn.classList.remove('active');
+      isListening = false;
+      chatInput.placeholder = "Ask AI Analyst / control graph...";
+    };
+
+    recognition.onend = () => {
+      micBtn.classList.remove('active');
+      isListening = false;
+      chatInput.placeholder = "Ask AI Analyst / control graph...";
+    };
+  } else {
+    micBtn.style.display = 'none';
+  }
+
   const sendChatMessage = async () => {
     const msg = chatInput.value.trim();
-    if (!msg) return;
+    if (!msg && !attachedFile) return;
+
+    let displayMsg = msg;
+    let payloadMsg = msg;
+
+    if (attachedFile) {
+      displayMsg = `📎 Attached [${attachedFile.type.toUpperCase()}]: ${attachedFile.name}\n${msg}`;
+      payloadMsg = `[User attached file ${attachedFile.name} (Type: ${attachedFile.type}, Size: ${attachedFile.size} bytes)]\nFile Content:\n"""\n${attachedFile.content.substring(0, 15000)}\n"""\n\nUser Message: ${msg}`;
+    }
 
     const userBubble = document.createElement('div');
     userBubble.className = 'chat-bubble user-msg';
-    userBubble.textContent = msg;
+    userBubble.innerHTML = displayMsg.replace(/\n/g, '<br>');
     chatMessages.appendChild(userBubble);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
     chatInput.value = '';
     chatInput.disabled = true;
     chatSendBtn.disabled = true;
+    if (attachedFile) {
+      removeAttachment();
+    }
 
     const activeIndicators = [];
     document.querySelectorAll('.ind-toggle input').forEach(cb => {
@@ -1058,7 +1163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           symbol: activeSymbol,
-          message: msg,
+          message: payloadMsg,
           history: chatHistory.slice(-6),
           chartContext: {
             price: priceText,
@@ -1077,7 +1182,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await resp.json();
       assistantBubble.innerHTML = renderResponseText(data.response);
       
-      chatHistory.push({ role: 'user', content: msg });
+      chatHistory.push({ role: 'user', content: payloadMsg });
       const actionIndex = data.response.indexOf('ACTION:');
       const cleanResp = actionIndex !== -1 ? data.response.substring(0, actionIndex).trim() : data.response;
       chatHistory.push({ role: 'assistant', content: cleanResp });

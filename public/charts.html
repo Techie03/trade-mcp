@@ -204,8 +204,21 @@
               Hello! I am your AI Market Analyst. Ask me anything about the current chart context, toggle indicators, or load different stocks. Try saying <em>"Toggle the RSI indicator and explain it"</em> or <em>"Load TSLA stock"</em>!
             </div>
           </div>
+          <div class="chat-attachment-preview hidden" id="chat-attachment-preview"></div>
           <div class="chat-input-wrapper">
+            <input type="file" id="chat-file-input" accept=".csv,.xml,.pdf,.docx,.png,.jpg,.jpeg" style="display: none;">
+            <button id="chat-attach-btn" class="chat-action-btn" title="Attach File (CSV, XML, PDF, DOCX, PNG, JPG)">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+              </svg>
+            </button>
             <input type="text" id="chat-input" placeholder="Ask AI Analyst / control graph..." autocomplete="off">
+            <button id="chat-mic-btn" class="chat-action-btn" title="Voice Input (Speech to Text)">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1v11M19 10a7 7 0 0 1-14 0M12 23v-4"/>
+                <rect x="9" y="5" width="6" height="10" rx="3"/>
+              </svg>
+            </button>
             <button id="chat-send-btn">Send</button>
           </div>
         </div>
