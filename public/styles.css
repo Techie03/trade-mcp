@@ -805,6 +805,35 @@ body {
   border-radius: 4px;
 }
 
+/* Config Visual Guide */
+.config-visual {
+  background-color: rgba(255, 255, 255, 0.01);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1.2rem;
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.visual-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+
+.visual-img {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  align-self: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
 /* ─── Footer ────────────────────────────────────────────────────────── */
 .main-footer {
   border-top: 1px solid var(--border-color);

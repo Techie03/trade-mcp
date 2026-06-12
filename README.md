@@ -142,6 +142,8 @@ You can connect directly to the active remote server instance **`https://nishith
 5. Paste URL: `https://nishith374-stock-mcp.hf.space/sse`
 6. Click **Save**.
 
+![Connect to Cursor MCP](https://raw.githubusercontent.com/Techie03/trade-mcp/assets/public/cursor_mcp.png)
+
 #### 2. Cursor (Via Config JSON)
 Update your global `mcp.json` file (typically in `%APPDATA%\Cursor\User\mcp.json` or `~/.config/Cursor/User/mcp.json`):
 ```json
