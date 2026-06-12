@@ -149,7 +149,56 @@ async function runHttp(): Promise<void> {
     await transport.handlePostMessage(req, res, req.body);
   });
 
-  // Info page or fallback JSON endpoint for '/'
+  // ── REST API: OHLCV chart data for the live charts page ──────────────────────
+  app.get('/api/chart', async (req, res) => {
+    try {
+      const symbol = (req.query.symbol as string) || 'AAPL';
+      const range = (req.query.range as string) || '3mo';
+      const interval = (req.query.interval as string) || '1d';
+      const { getHistorical } = await import('./providers/yahoo.js');
+      const candles = await getHistorical(symbol.toUpperCase(), range, interval);
+      res.json({ symbol: symbol.toUpperCase(), range, interval, count: candles.length, candles });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: message });
+    }
+  });
+
+  // ── REST API: Live ticker tape data (15 major symbols) ───────────────────────
+  const TICKER_SYMBOLS = [
+    'AAPL','MSFT','NVDA','GOOGL','AMZN','TSLA','META','RELIANCE.NS','TCS.NS',
+    'INFY.NS','^NSEI','^GSPC','^DJI','BTC-USD','EURUSD=X'
+  ];
+  app.get('/api/ticker', async (req, res) => {
+    try {
+      const { getQuote } = await import('./providers/yahoo.js');
+      const results = await Promise.allSettled(
+        TICKER_SYMBOLS.map(sym => getQuote(sym))
+      );
+      const quotes = results
+        .map((r, i) => r.status === 'fulfilled' ? r.value : null)
+        .filter(Boolean);
+      res.json({ quotes, timestamp: new Date().toISOString() });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: message });
+    }
+  });
+
+  // ── REST API: Quote for a single symbol (used by charts page) ────────────────
+  app.get('/api/quote', async (req, res) => {
+    try {
+      const symbol = (req.query.symbol as string) || 'AAPL';
+      const { getQuote } = await import('./providers/yahoo.js');
+      const quote = await getQuote(symbol.toUpperCase());
+      res.json(quote);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: message });
+    }
+  });
+
+
   app.get('/', (req, res, next) => {
     if (req.headers.accept?.includes('application/json')) {
       res.json({

@@ -45,6 +45,25 @@
     </div>
   </header>
 
+  <!-- Live Ticker Tape -->
+  <div class="ticker-tape" id="ticker-tape">
+    <div class="ticker-track" id="ticker-track">
+      <!-- Populated by app.js via /api/ticker -->
+      <span class="ticker-item"><span class="ticker-symbol">AAPL</span><span class="ticker-price">—</span><span class="ticker-chg">—</span></span>
+      <span class="ticker-item"><span class="ticker-symbol">MSFT</span><span class="ticker-price">—</span><span class="ticker-chg">—</span></span>
+      <span class="ticker-item"><span class="ticker-symbol">NVDA</span><span class="ticker-price">—</span><span class="ticker-chg">—</span></span>
+      <span class="ticker-item"><span class="ticker-symbol">TSLA</span><span class="ticker-price">—</span><span class="ticker-chg">—</span></span>
+      <span class="ticker-item"><span class="ticker-symbol">GOOGL</span><span class="ticker-price">—</span><span class="ticker-chg">—</span></span>
+      <span class="ticker-item"><span class="ticker-symbol">AMZN</span><span class="ticker-price">—</span><span class="ticker-chg">—</span></span>
+      <span class="ticker-item"><span class="ticker-symbol">META</span><span class="ticker-price">—</span><span class="ticker-chg">—</span></span>
+      <span class="ticker-item"><span class="ticker-symbol">RELIANCE</span><span class="ticker-price">—</span><span class="ticker-chg">—</span></span>
+      <span class="ticker-item"><span class="ticker-symbol">TCS</span><span class="ticker-price">—</span><span class="ticker-chg">—</span></span>
+      <span class="ticker-item"><span class="ticker-symbol">BTC</span><span class="ticker-price">—</span><span class="ticker-chg">—</span></span>
+      <span class="ticker-item"><span class="ticker-symbol">NIFTY</span><span class="ticker-price">—</span><span class="ticker-chg">—</span></span>
+      <span class="ticker-item"><span class="ticker-symbol">S&P500</span><span class="ticker-price">—</span><span class="ticker-chg">—</span></span>
+    </div>
+  </div>
+
   <main class="main-content">
     <!-- Hero Section -->
     <section class="hero-section">
@@ -57,6 +76,10 @@
         </p>
         <div class="hero-cta">
           <a href="#quickstart" class="btn btn-primary">Get Config Block</a>
+          <a href="/charts.html" class="btn btn-charts">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Live Charts
+          </a>
           <a href="https://github.com/Techie03/trade-mcp" target="_blank" class="btn btn-secondary">
             <svg class="icon-git" viewBox="0 0 24 24" width="18" height="18">
               <path fill="currentColor"
@@ -78,14 +101,68 @@
             <span>Copy Endpoint</span>
           </button>
         </div>
-        
-        <!-- Showcase Video Embed -->
-        <div class="hero-video-wrapper">
-          <video class="hero-video" autoplay loop muted playsinline controls>
-            <source src="https://raw.githubusercontent.com/Techie03/trade-mcp/assets/public/intro_video.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+        <!-- Animated Hero Market Chart -->
+        <div class="hero-chart-animation" aria-hidden="true">
+          <svg class="anim-chart-svg" viewBox="0 0 600 160" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <!-- Grid lines -->
+            <line x1="0" y1="40" x2="600" y2="40" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <line x1="0" y1="80" x2="600" y2="80" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <line x1="0" y1="120" x2="600" y2="120" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <!-- Area fill -->
+            <defs>
+              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0a84ff" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#0a84ff" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path class="anim-area" d="M0,130 C20,100 40,120 60,90 S100,50 130,70 S170,100 200,75 S240,40 270,55 S310,90 340,60 S380,30 410,45 S450,80 480,55 S520,20 560,35 L600,40 L600,160 L0,160 Z" fill="url(#areaGrad)"/>
+            <path class="anim-line" d="M0,130 C20,100 40,120 60,90 S100,50 130,70 S170,100 200,75 S240,40 270,55 S310,90 340,60 S380,30 410,45 S450,80 480,55 S520,20 560,35 L600,40" fill="none" stroke="#0a84ff" stroke-width="2"/>
+            <!-- Candlesticks overlay -->
+            <g class="anim-candles">
+              <!-- Bullish candles (green) -->
+              <g class="candle-grp bull" style="--delay:0s">
+                <line x1="55" y1="70" x2="55" y2="105" stroke="#30d158" stroke-width="1"/>
+                <rect x="51" y="78" width="8" height="20" fill="#30d158" rx="1"/>
+              </g>
+              <g class="candle-grp bull" style="--delay:0.4s">
+                <line x1="100" y1="42" x2="100" y2="68" stroke="#30d158" stroke-width="1"/>
+                <rect x="96" y="48" width="8" height="14" fill="#30d158" rx="1"/>
+              </g>
+              <g class="candle-grp bull" style="--delay:0.8s">
+                <line x1="190" y1="60" x2="190" y2="85" stroke="#30d158" stroke-width="1"/>
+                <rect x="186" y="65" width="8" height="14" fill="#30d158" rx="1"/>
+              </g>
+              <g class="candle-grp bull" style="--delay:1.2s">
+                <line x1="330" y1="45" x2="330" y2="70" stroke="#30d158" stroke-width="1"/>
+                <rect x="326" y="50" width="8" height="14" fill="#30d158" rx="1"/>
+              </g>
+              <g class="candle-grp bull" style="--delay:1.6s">
+                <line x1="540" y1="18" x2="540" y2="42" stroke="#30d158" stroke-width="1"/>
+                <rect x="536" y="23" width="8" height="14" fill="#30d158" rx="1"/>
+              </g>
+              <!-- Bearish candles (red) -->
+              <g class="candle-grp bear" style="--delay:0.2s">
+                <line x1="145" y1="55" x2="145" y2="88" stroke="#ff453a" stroke-width="1"/>
+                <rect x="141" y="62" width="8" height="18" fill="#ff453a" rx="1"/>
+              </g>
+              <g class="candle-grp bear" style="--delay:0.6s">
+                <line x1="235" y1="30" x2="235" y2="60" stroke="#ff453a" stroke-width="1"/>
+                <rect x="231" y="37" width="8" height="15" fill="#ff453a" rx="1"/>
+              </g>
+              <g class="candle-grp bear" style="--delay:1.0s">
+                <line x1="390" y1="22" x2="390" y2="55" stroke="#ff453a" stroke-width="1"/>
+                <rect x="386" y="28" width="8" height="18" fill="#ff453a" rx="1"/>
+              </g>
+              <g class="candle-grp bear" style="--delay:1.4s">
+                <line x1="460" y1="50" x2="460" y2="85" stroke="#ff453a" stroke-width="1"/>
+                <rect x="456" y="57" width="8" height="18" fill="#ff453a" rx="1"/>
+              </g>
+            </g>
+            <!-- Moving average line -->
+            <path d="M0,125 C60,100 120,80 180,78 S280,65 360,55 S460,42 600,38" fill="none" stroke="#ff9f0a" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>
+          </svg>
         </div>
+
       </div>
     </section>
 

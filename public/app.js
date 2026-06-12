@@ -292,6 +292,49 @@ document.addEventListener('DOMContentLoaded', () => {
   checkServerStatus();
   setInterval(checkServerStatus, 30000);
 
+  // ── Live Ticker Tape ──────────────────────────────────────────────
+  const TICKER_SYMBOL_MAP = {
+    'AAPL': 'AAPL', 'MSFT': 'MSFT', 'NVDA': 'NVDA', 'TSLA': 'TSLA',
+    'GOOGL': 'GOOGL', 'AMZN': 'AMZN', 'META': 'META', 'RELIANCE.NS': 'RELIANCE',
+    'TCS.NS': 'TCS', 'BTC-USD': 'BTC', '^NSEI': 'NIFTY', '^GSPC': 'S&P500',
+    '^DJI': 'DOW', 'INFY.NS': 'INFY', 'EURUSD=X': 'EUR/USD'
+  };
+
+  let prevPrices = {};
+
+  async function updateTickerTape() {
+    try {
+      const res = await fetch(`${HF_BACKEND_URL}/api/ticker`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const track = document.getElementById('ticker-track');
+      if (!track) return;
+
+      // Build HTML for all quotes, doubled for infinite scroll
+      const quotes = data.quotes || [];
+      const buildItem = (q) => {
+        const sym = TICKER_SYMBOL_MAP[q.symbol] || q.symbol;
+        const price = q.price != null ? q.price.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
+        const pct = q.changePercent != null ? `${q.changePercent >= 0 ? '+' : ''}${q.changePercent.toFixed(2)}%` : '—';
+        const cls = q.changePercent >= 0 ? 'up' : 'down';
+        const flash = prevPrices[q.symbol] != null && prevPrices[q.symbol] !== q.price
+          ? (q.price > prevPrices[q.symbol] ? ' flash-up' : ' flash-down') : '';
+        return `<span class="ticker-item${flash}" data-sym="${q.symbol}"><span class="ticker-symbol">${sym}</span><span class="ticker-price">${price}</span><span class="ticker-chg ${cls}">${pct}</span></span>`;
+      };
+
+      if (quotes.length > 0) {
+        const html = quotes.map(buildItem).join('');
+        track.innerHTML = html + html; // duplicate for seamless loop
+
+        // Store prices for flash detection
+        quotes.forEach(q => { prevPrices[q.symbol] = q.price; });
+      }
+    } catch {}
+  }
+
+  updateTickerTape();
+  setInterval(updateTickerTape, 30000);
+
   // Setup Config copy toggles
   const tabButtons = document.querySelectorAll('.config-tab-btn');
   tabButtons.forEach(btn => {

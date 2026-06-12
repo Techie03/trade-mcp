@@ -1018,3 +1018,158 @@ body {
     grid-row: span 1;
   }
 }
+
+/* ─── Ticker Tape ─────────────────────────────────────────────────── */
+.ticker-tape {
+  overflow: hidden;
+  white-space: nowrap;
+  background: rgba(10, 10, 14, 0.9);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  height: 36px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 50;
+}
+.ticker-tape::before,
+.ticker-tape::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 80px;
+  z-index: 2;
+  pointer-events: none;
+}
+.ticker-tape::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(10,10,14,1), transparent);
+}
+.ticker-tape::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(10,10,14,1), transparent);
+}
+.ticker-track {
+  display: inline-flex;
+  align-items: center;
+  animation: ticker-scroll 40s linear infinite;
+  gap: 0;
+}
+.ticker-track:hover { animation-play-state: paused; }
+
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  border-right: 1px solid rgba(255,255,255,0.07);
+}
+.ticker-symbol {
+  font-weight: 700;
+  color: #f5f5f7;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.ticker-price {
+  color: #f5f5f7;
+}
+.ticker-chg { font-size: 11px; }
+.ticker-chg.up { color: #30d158; }
+.ticker-chg.down { color: #ff453a; }
+
+/* Price flash animation when updated */
+@keyframes flash-green {
+  0% { background: rgba(48,209,88,0.25); }
+  100% { background: transparent; }
+}
+@keyframes flash-red {
+  0% { background: rgba(255,69,58,0.25); }
+  100% { background: transparent; }
+}
+.ticker-item.flash-up { animation: flash-green 0.6s ease-out; }
+.ticker-item.flash-down { animation: flash-red 0.6s ease-out; }
+
+/* ─── Hero Chart Animation ────────────────────────────────────────── */
+.hero-chart-animation {
+  width: 100%;
+  max-width: 900px;
+  margin: 32px auto 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(10,10,14,0.6);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 24px 80px rgba(10,132,255,0.12), 0 0 0 1px rgba(255,255,255,0.04);
+  position: relative;
+}
+.anim-chart-svg {
+  width: 100%;
+  height: 160px;
+  display: block;
+}
+
+/* Animate the area path drawing */
+.anim-line {
+  stroke-dasharray: 1800;
+  stroke-dashoffset: 1800;
+  animation: draw-line 2.5s ease-out forwards;
+}
+@keyframes draw-line {
+  to { stroke-dashoffset: 0; }
+}
+
+.anim-area {
+  opacity: 0;
+  animation: fade-area 0.8s ease-out 2s forwards;
+}
+@keyframes fade-area {
+  to { opacity: 1; }
+}
+
+/* Candle entrance animation */
+.candle-grp {
+  opacity: 0;
+  animation: candle-in 0.4s ease-out forwards;
+  animation-delay: var(--delay, 0s);
+  animation-delay: calc(2s + var(--delay, 0s));
+  transform-origin: bottom center;
+}
+@keyframes candle-in {
+  from { opacity: 0; transform: scaleY(0); }
+  to   { opacity: 1; transform: scaleY(1); }
+}
+
+/* Subtle pulsing glow on the candles */
+.candle-grp.bull rect {
+  filter: drop-shadow(0 0 4px rgba(48,209,88,0.6));
+}
+.candle-grp.bear rect {
+  filter: drop-shadow(0 0 4px rgba(255,69,58,0.6));
+}
+
+/* ─── Live Charts Button ──────────────────────────────────────────── */
+.btn-charts {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #0a84ff 0%, #30d158 100%);
+  color: #fff;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  transition: opacity 0.18s, transform 0.18s;
+  box-shadow: 0 4px 20px rgba(10,132,255,0.35);
+}
+.btn-charts:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.btn-charts svg { flex-shrink: 0; }
