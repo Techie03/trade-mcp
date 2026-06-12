@@ -109,6 +109,7 @@ export async function getHistorical(
   const candles: HistoricalCandle[] = timestamps
     .map((ts, i) => ({
       date: new Date(ts * 1000).toISOString().split('T')[0],
+      time: ts,
       open: Number((opens[i] ?? 0).toFixed(2)),
       high: Number((highs[i] ?? 0).toFixed(2)),
       low: Number((lows[i] ?? 0).toFixed(2)),

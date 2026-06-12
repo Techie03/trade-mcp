@@ -23,6 +23,7 @@ export interface Quote {
 
 export interface HistoricalCandle {
   date: string;        // ISO date string YYYY-MM-DD
+  time: number;        // UNIX timestamp in seconds
   open: number;
   high: number;
   low: number;

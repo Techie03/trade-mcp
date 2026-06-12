@@ -99,6 +99,14 @@ function calcBollingerBands(closes, period = 20, stdDevMult = 2) {
 
 // ─── Chart State ─────────────────────────────────────────────────────────────
 
+const INTERVAL_SECONDS = {
+  '5m': 300,
+  '15m': 900,
+  '1h': 3600,
+  '1d': 86400,
+  '1wk': 604800,
+};
+
 let activeSymbol = 'AAPL';
 let activeRange = '3mo';
 let activeInterval = '1d';
@@ -182,7 +190,7 @@ function initCharts() {
 
 function renderCharts(candles) {
   const closes = candles.map(c => c.close);
-  const times  = candles.map(c => c.date); // 'YYYY-MM-DD' strings
+  const times  = candles.map(c => c.time || c.date); // Use UNIX timestamps (numbers) for intraday, fall back to date strings
 
   // Helper: map values to {time, value} series
   const toLineSeries = (values) =>
@@ -204,20 +212,20 @@ function renderCharts(candles) {
       wickUpColor: '#30d158', wickDownColor: '#ff453a',
     });
     mainSeries.setData(candles.map(c => ({
-      time: c.date, open: c.open, high: c.high, low: c.low, close: c.close,
+      time: c.time || c.date, open: c.open, high: c.high, low: c.low, close: c.close,
     })));
   } else if (activeChartType === 'line') {
     mainSeries = mainChart.addLineSeries({
       color: '#0a84ff', lineWidth: 2, priceLineVisible: true,
       lastValueVisible: true, crosshairMarkerVisible: true,
     });
-    mainSeries.setData(candles.map(c => ({ time: c.date, value: c.close })));
+    mainSeries.setData(candles.map(c => ({ time: c.time || c.date, value: c.close })));
   } else {
     mainSeries = mainChart.addAreaSeries({
       lineColor: '#0a84ff', topColor: 'rgba(10,132,255,0.3)',
       bottomColor: 'rgba(10,132,255,0)', lineWidth: 2,
     });
-    mainSeries.setData(candles.map(c => ({ time: c.date, value: c.close })));
+    mainSeries.setData(candles.map(c => ({ time: c.time || c.date, value: c.close })));
   }
 
   // ── EMA OVERLAYS ──
@@ -258,8 +266,8 @@ function renderCharts(candles) {
       priceScaleId: '',
     });
     volSeries.priceScale().applyOptions({ scaleMargins: { top: 0.1, bottom: 0 } });
-    volSeries.setData(candles.map(c => ({
-      time: c.date, value: c.volume,
+    volSeries.setData(candles.map((c, i) => ({
+      time: times[i], value: c.volume,
       color: c.close >= c.open ? 'rgba(48,209,88,0.5)' : 'rgba(255,69,58,0.5)',
     })));
   }
@@ -460,15 +468,30 @@ function startRealtimeUpdates(symbol) {
       // Update the last candle on the chart!
       if (activeCandles && activeCandles.length > 0 && mainSeries) {
         const lastCandle = activeCandles[activeCandles.length - 1];
-        const quoteDate = new Date(q.timestamp * 1000).toISOString().split('T')[0];
+        const isIntraday = ['5m', '15m', '1h'].includes(activeInterval);
+        
+        let isSameCandle = false;
+        if (isIntraday) {
+          const seconds = INTERVAL_SECONDS[activeInterval] || 900;
+          isSameCandle = (q.timestamp >= lastCandle.time && q.timestamp < lastCandle.time + seconds);
+        } else {
+          const quoteDate = new Date(q.timestamp * 1000).toISOString().split('T')[0];
+          isSameCandle = (lastCandle.date === quoteDate);
+        }
 
-        if (lastCandle.date === quoteDate) {
+        if (isSameCandle) {
           lastCandle.close = q.price;
           if (q.high > lastCandle.high) lastCandle.high = q.high;
           if (q.low < lastCandle.low) lastCandle.low = q.low;
-        } else if (quoteDate > lastCandle.date) {
+        } else if (!isIntraday || q.timestamp > lastCandle.time) {
+          let newTime = q.timestamp;
+          if (isIntraday) {
+            const seconds = INTERVAL_SECONDS[activeInterval] || 900;
+            newTime = Math.floor(q.timestamp / seconds) * seconds;
+          }
           const newCandle = {
-            date: quoteDate,
+            date: new Date(newTime * 1000).toISOString().split('T')[0],
+            time: newTime,
             open: q.open || q.price,
             high: q.high || q.price,
             low: q.low || q.price,
