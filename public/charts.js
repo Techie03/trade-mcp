@@ -180,7 +180,9 @@ function initCharts() {
   const ro = new ResizeObserver(() => {
     [mainChart, volChart, rsiChart, macdChart].forEach(c => {
       const el = c.chartElement();
-      if (el) c.resize(el.clientWidth, el.clientHeight);
+      if (el && el.parentElement) {
+        c.resize(el.parentElement.clientWidth, el.parentElement.clientHeight);
+      }
     });
   });
   document.querySelectorAll('.chart-pane').forEach(el => ro.observe(el));
@@ -566,10 +568,30 @@ function loadSymbol(symbol, range, interval, addToWatchlist = true) {
     el.classList.toggle('active', el.dataset.symbol === symbol);
   });
 
+  // Close mobile sidebar and backdrop if open
+  const sidebarEl = document.querySelector('.sidebar');
+  const backdropEl = document.getElementById('sidebar-backdrop');
+  if (sidebarEl) sidebarEl.classList.remove('open');
+  if (backdropEl) backdropEl.classList.remove('visible');
+
   fetchAndRender(activeSymbol, activeRange, activeInterval);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Mobile sidebar toggle
+  const toggleBtn = document.getElementById('btn-toggle-sidebar');
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+
+  if (toggleBtn && sidebar && backdrop) {
+    const toggle = () => {
+      sidebar.classList.toggle('open');
+      backdrop.classList.toggle('visible');
+    };
+    toggleBtn.addEventListener('click', toggle);
+    backdrop.addEventListener('click', toggle);
+  }
+
   // Render dynamic watchlist
   renderWatchlist();
 
