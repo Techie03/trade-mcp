@@ -547,6 +547,10 @@ function loadSymbol(symbol, range, interval) {
     realtimeTimer = null;
   }
 
+  // Reset/hide AI Analyst panel
+  const aiPanel = document.getElementById('ai-analyst-panel');
+  if (aiPanel) aiPanel.classList.add('hidden');
+
   // Add symbol dynamically if not in watchlist
   if (!WATCHLIST_SYMBOLS.includes(symbol)) {
     WATCHLIST.unshift({ symbol, name: symbol });
@@ -663,6 +667,84 @@ document.addEventListener('DOMContentLoaded', () => {
   btn.addEventListener('click', submit);
   input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
 
+
+  // AI Analyst Panel Actions
+  const btnAi = document.getElementById('btn-ai-analyze');
+  const aiPanel = document.getElementById('ai-analyst-panel');
+  const btnCloseAip = document.getElementById('btn-close-aip');
+  const aipSymbol = document.getElementById('aip-symbol');
+  const aipLoader = aiPanel.querySelector('.aip-loader');
+  const aipContent = document.getElementById('aip-content');
+
+  btnCloseAip.addEventListener('click', () => {
+    aiPanel.classList.add('hidden');
+  });
+
+  btnAi.addEventListener('click', async () => {
+    aiPanel.classList.remove('hidden');
+    aipSymbol.textContent = activeSymbol;
+    aipLoader.style.display = 'flex';
+    aipContent.classList.add('hidden');
+
+    try {
+      const resp = await fetch(`${API_BASE}/api/insight?symbol=${encodeURIComponent(activeSymbol)}`);
+      if (!resp.ok) {
+        if (resp.status === 503) {
+          throw new Error('AI provider keys are missing on the backend. Please add GROQ_API_KEY or NVIDIA_API_KEY to your .env file to enable live AI analysis.');
+        }
+        throw new Error(`HTTP ${resp.status}`);
+      }
+      const data = await resp.json();
+
+      const signalClass = (data.signal || 'Hold').toLowerCase();
+      const negativesList = (data.keyRisks || []).map(r => `<li>${r}</li>`).join('');
+      const positivesList = (data.keyPositives || []).map(p => `<li>${p}</li>`).join('');
+
+      aipContent.innerHTML = `
+        <div class="aip-signal-badge ${signalClass}">
+          Signal: ${data.signal || 'Hold'} (Confidence: ${(data.confidence * 100).toFixed(0)}%)
+        </div>
+        
+        <p class="aip-narrative">"${data.summary || 'Analysis complete.'}"</p>
+
+        <div class="aip-grid">
+          <div class="aip-box">
+            <div class="aip-box-title">🟢 Key Positives</div>
+            <ul class="aip-box-list">${positivesList || '<li>No immediate positives reported</li>'}</ul>
+          </div>
+          <div class="aip-box">
+            <div class="aip-box-title">🔴 Key Risks / Concerns</div>
+            <ul class="aip-box-list">${negativesList || '<li>No immediate risks reported</li>'}</ul>
+          </div>
+        </div>
+
+        <div class="aip-grid">
+          <div class="aip-box">
+            <div class="aip-box-title">📊 Technical Outlook</div>
+            <p>${data.technicalOutlook || 'Neutral consolidation.'}</p>
+          </div>
+          <div class="aip-box">
+            <div class="aip-box-title">🏛️ Fundamental Outlook</div>
+            <p>${data.fundamentalOutlook || 'Stable overview.'}</p>
+          </div>
+        </div>
+
+        <div class="aip-model">Engine: ${data.model || 'Groq LLaMA 3.3'}</div>
+      `;
+
+      aipLoader.style.display = 'none';
+      aipContent.classList.remove('hidden');
+
+    } catch (err) {
+      aipLoader.style.display = 'none';
+      aipContent.innerHTML = `
+        <div style="color: var(--red); font-size: 13px; line-height: 1.5; padding: 10px; border: 1px dashed var(--red); border-radius: 6px; background: rgba(255,69,58,0.05);">
+          <strong>Analysis Failed:</strong> ${err.message || err}
+        </div>
+      `;
+      aipContent.classList.remove('hidden');
+    }
+  });
 
   // Initial load
   loadSymbol('AAPL', '3mo', '1d');

@@ -287,3 +287,74 @@ body {
   animation: flash-red 1s ease-out;
 }
 
+/* AI Analyst Button & Panel */
+.btn-ai-analyze {
+  background: linear-gradient(135deg, var(--purple), var(--blue));
+  border: none; border-radius: 6px;
+  color: #fff; font-size: 11px; font-weight: 700;
+  padding: 6px 12px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: opacity 0.18s, box-shadow 0.18s;
+  box-shadow: 0 0 10px rgba(175,82,222,0.25);
+  margin-left: 12px;
+}
+.btn-ai-analyze:hover {
+  opacity: 0.9;
+  box-shadow: 0 0 14px rgba(10,132,255,0.4);
+}
+.btn-ai-analyze svg { stroke: currentColor; }
+
+.ai-analyst-panel {
+  background: rgba(17,17,21,0.98);
+  border-bottom: 1px solid var(--border);
+  padding: 16px; max-height: 400px; overflow-y: auto;
+  position: relative; transition: all 0.25s ease-in-out;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.ai-analyst-panel.hidden { display: none; }
+.aip-header {
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--border); padding-bottom: 8px;
+}
+.aip-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.btn-close-aip {
+  background: none; border: none; color: var(--text-2);
+  font-size: 20px; cursor: pointer; transition: color 0.15s;
+}
+.btn-close-aip:hover { color: var(--text); }
+
+.aip-loader {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px; padding: 30px 0;
+}
+.aip-loader p { font-size: 12px; color: var(--text-2); text-align: center; }
+
+.aip-content {
+  font-size: 13px; line-height: 1.6; display: flex; flex-direction: column; gap: 14px;
+}
+.aip-signal-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; align-self: flex-start;
+}
+.aip-signal-badge.buy { background: rgba(48,209,88,0.15); color: var(--green); border: 1px solid rgba(48,209,88,0.3); }
+.aip-signal-badge.sell { background: rgba(255,69,58,0.15); color: var(--red); border: 1px solid rgba(255,69,58,0.3); }
+.aip-signal-badge.hold { background: rgba(255,159,10,0.15); color: var(--orange); border: 1px solid rgba(255,159,10,0.3); }
+
+.aip-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+}
+@media (max-width: 600px) {
+  .aip-grid { grid-template-columns: 1fr; }
+}
+.aip-box {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px;
+}
+.aip-box-title { font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; margin-bottom: 6px; }
+.aip-box-list { padding-left: 14px; }
+.aip-box-list li { margin-bottom: 4px; }
+.aip-narrative { color: var(--text-2); font-style: italic; }
+.aip-model { font-size: 10px; color: var(--text-3); font-family: var(--font-mono); align-self: flex-end; }
+
+

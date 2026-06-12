@@ -227,6 +227,93 @@ async function runHttp(): Promise<void> {
     }
   });
 
+  // ── REST API: AI Stock Insight Analysis ─────────────────────────────────────
+  app.get('/api/insight', async (req, res) => {
+    try {
+      const symbol = (req.query.symbol as string) || 'AAPL';
+      const { callAI, parseAIJson, isAIAvailable } = await import('./providers/ai.js');
+      const { getQuote } = await import('./providers/yahoo.js');
+      const { getCompanyNews } = await import('./providers/finnhub.js');
+      const { getCompanyOverview, getTechnicalIndicator } = await import('./providers/alphavantage.js');
+      const { insightPrompt } = await import('./prompts.js');
+
+      if (!isAIAvailable()) {
+        res.status(503).json({ error: 'AI provider not configured on backend. Set GROQ_API_KEY or NVIDIA_API_KEY.' });
+        return;
+      }
+
+      const avSymbol = symbol.toUpperCase().replace('.NS', '').replace('.BO', '');
+
+      const [quoteR, overviewR, newsR, rsiR] = await Promise.allSettled([
+        getQuote(symbol),
+        getCompanyOverview(avSymbol),
+        getCompanyNews(avSymbol, 5),
+        getTechnicalIndicator(avSymbol, 'RSI', 'daily'),
+      ]);
+
+      const data = {
+        symbol,
+        quote: quoteR.status === 'fulfilled' ? quoteR.value as any : undefined,
+        overview: overviewR.status === 'fulfilled' ? overviewR.value as any : undefined,
+        news: newsR.status === 'fulfilled' ? newsR.value as any : undefined,
+        technicals: rsiR.status === 'fulfilled' ? { RSI: rsiR.value.values.slice(0, 5) } as any : undefined,
+      };
+
+      const { result, model } = await callAI(insightPrompt(data as any));
+      const parsed = parseAIJson(result, {
+        symbol, sentiment: 'Neutral', confidence: 0, summary: result,
+        keyPositives: [], keyRisks: [], technicalOutlook: '', fundamentalOutlook: '',
+        signal: 'Hold', model,
+      });
+
+      res.json({ ...parsed, model });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: message });
+    }
+  });
+
+  // ── REST API: AI Trade Signal Analysis ──────────────────────────────────────
+  app.get('/api/signal', async (req, res) => {
+    try {
+      const symbol = (req.query.symbol as string) || 'AAPL';
+      const { callAI, parseAIJson, isAIAvailable } = await import('./providers/ai.js');
+      const { getQuote } = await import('./providers/yahoo.js');
+      const { getTechnicalIndicator, getCompanyOverview } = await import('./providers/alphavantage.js');
+      const { tradeSignalPrompt } = await import('./prompts.js');
+
+      if (!isAIAvailable()) {
+        res.status(503).json({ error: 'AI provider not configured on backend. Set GROQ_API_KEY or NVIDIA_API_KEY.' });
+        return;
+      }
+
+      const avSymbol = symbol.toUpperCase().replace('.NS', '').replace('.BO', '');
+
+      const [quoteR, techR, overviewR] = await Promise.allSettled([
+        getQuote(symbol),
+        getTechnicalIndicator(avSymbol, 'MACD', 'daily'),
+        getCompanyOverview(avSymbol),
+      ]);
+
+      const data = {
+        quote: quoteR.status === 'fulfilled' ? quoteR.value as any : undefined,
+        technicals: techR.status === 'fulfilled' ? { MACD: techR.value.values.slice(0, 10) } as any : undefined,
+        overview: overviewR.status === 'fulfilled' ? overviewR.value as any : undefined,
+      };
+
+      const { result, model } = await callAI(tradeSignalPrompt(symbol, data as any));
+      const parsed = parseAIJson(result, {
+        symbol, signal: 'Hold', confidence: 0, reasoning: result,
+        supportLevels: [], resistanceLevels: [], timeframe: 'Medium-term (1-4 weeks)', model,
+      });
+
+      res.json({ ...parsed, disclaimer: 'Not financial advice', model });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: message });
+    }
+  });
+
 
 
   app.get('/', (req, res, next) => {

@@ -69,6 +69,27 @@
           <div class="sib-stat"><span class="sib-stat-label">52W Low</span><span id="sib-52l">—</span></div>
           <div class="sib-stat"><span class="sib-stat-label">Volume</span><span id="sib-vol">—</span></div>
         </div>
+        <button id="btn-ai-analyze" class="btn-ai-analyze">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          AI Analyst
+        </button>
+      </div>
+
+      <!-- AI Analyst Panel -->
+      <div class="ai-analyst-panel hidden" id="ai-analyst-panel">
+        <div class="aip-header">
+          <div class="aip-title">🤖 AI Analyst Report — <span id="aip-symbol">AAPL</span></div>
+          <button id="btn-close-aip" class="btn-close-aip">&times;</button>
+        </div>
+        <div class="aip-body" id="aip-body">
+          <div class="aip-loader">
+            <div class="loading-spinner"></div>
+            <p>Running multi-agent portfolio, technical and fundamental checks via Groq LLaMA 3.3...</p>
+          </div>
+          <div class="aip-content hidden" id="aip-content">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
       </div>
 
       <!-- Toolbar: Timeframes + Chart Type + Indicators -->
