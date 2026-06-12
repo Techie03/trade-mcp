@@ -1,8 +1,8 @@
 {
-  "cleanUrls": false,
+  "cleanUrls": true,
   "rewrites": [
     { "source": "/charts", "destination": "/public/charts.html" },
     { "source": "/charts.html", "destination": "/public/charts.html" },
-    { "source": "/(.*)", "destination": "/public/$1" }
+    { "source": "/((?!public/).*)", "destination": "/public/$1" }
   ]
 }
