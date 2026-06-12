@@ -435,4 +435,130 @@ body {
 .aip-narrative { color: var(--text-2); font-style: italic; }
 .aip-model { font-size: 10px; color: var(--text-3); font-family: var(--font-mono); align-self: flex-end; }
 
+/* AI Chat Tabs and Interface styling */
+.aip-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 0 12px;
+}
+.aip-tab {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.aip-tab:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.aip-tab.active {
+  background: rgba(10,132,255,0.15);
+  color: var(--blue);
+  border-color: var(--blue);
+}
+
+.tab-pane-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+.tab-pane-content.hidden {
+  display: none !important;
+}
+
+.chat-messages-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 230px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  background: #08080a;
+}
+.chat-bubble {
+  max-width: 80%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+.chat-bubble.assistant-msg {
+  background: var(--bg-surface);
+  color: var(--text-2);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+  border: 1px solid var(--border);
+}
+.chat-bubble.user-msg {
+  background: rgba(10,132,255,0.2);
+  color: var(--text);
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+  border: 1px solid rgba(10,132,255,0.3);
+}
+.chat-bubble.system-error {
+  background: rgba(255,69,58,0.1);
+  color: var(--red);
+  align-self: center;
+  border: 1px dashed var(--red);
+  text-align: center;
+}
+
+.chat-input-wrapper {
+  display: flex;
+  gap: 8px;
+}
+#chat-input {
+  flex: 1;
+  background: #0d0d11;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+#chat-input:focus {
+  border-color: var(--blue);
+}
+#chat-send-btn {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 16px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+#chat-send-btn:hover {
+  opacity: 0.9;
+}
+#chat-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Hide TradingView Attribution/Logo/Watermark */
+a[href*="tradingview.com"],
+div[class*="tv-lightweight-charts-logo"],
+.tv-lightweight-charts-logo {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+
 

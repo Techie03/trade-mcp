@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { SYSTEM_ANALYST } from '../prompts.js';
+import { SYSTEM_ANALYST, SYSTEM_CHAT_ANALYST } from '../prompts.js';
 
 // ─── AI provider router ───────────────────────────────────────────────────────
 // Primary: Groq (LLaMA 3.3-70B) — fastest inference via LPU hardware
@@ -106,4 +106,52 @@ export function getAIStatus(): string {
   if (groqKey) engines.push(`Groq (${groqModel})`);
   if (nvidiaKey) engines.push(`NVIDIA NIM (${nvidiaModel})`);
   return engines.length > 0 ? `Available: ${engines.join(' → ')}` : 'No AI keys configured';
+}
+
+export async function callAIChat(chatMessages: { role: 'user' | 'assistant' | 'system'; content: string }[]): Promise<{ result: string; model: string }> {
+  const messages: OpenAI.ChatCompletionMessageParam[] = [
+    { role: 'system', content: SYSTEM_CHAT_ANALYST },
+    ...chatMessages,
+  ];
+
+  // Try Groq first
+  if (groqKey) {
+    try {
+      const completion = await getGroqClient().chat.completions.create({
+        model: groqModel,
+        messages,
+        temperature: 0.3,
+        max_tokens: 1024,
+      });
+      const result = completion.choices[0]?.message?.content ?? '';
+      return { result, model: `Groq/${groqModel}` };
+    } catch (err) {
+      const msg = (err as Error).message ?? '';
+      const isRateLimit = msg.includes('429') || msg.includes('rate limit') || msg.includes('Rate limit');
+      if (!isRateLimit || !nvidiaKey) {
+        console.error('[AI] Groq error:', msg);
+        if (!nvidiaKey) throw err;
+      }
+      console.error('[AI] Groq rate limited, falling back to NVIDIA NIM');
+    }
+  }
+
+  // NVIDIA NIM fallback
+  if (nvidiaKey) {
+    try {
+      const completion = await getNvidiaClient().chat.completions.create({
+        model: nvidiaModel,
+        messages,
+        temperature: 0.3,
+        max_tokens: 1024,
+      });
+      const result = completion.choices[0]?.message?.content ?? '';
+      return { result, model: `NVIDIA NIM/${nvidiaModel}` };
+    } catch (err) {
+      console.error('[AI] NVIDIA NIM error:', (err as Error).message);
+      throw err;
+    }
+  }
+
+  throw new Error('No AI provider configured. Set GROQ_API_KEY and/or NVIDIA_API_KEY in your .env file.');
 }

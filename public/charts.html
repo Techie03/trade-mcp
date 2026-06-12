@@ -80,6 +80,7 @@
           <div class="sib-stat"><span class="sib-stat-label">52W High</span><span id="sib-52h">—</span></div>
           <div class="sib-stat"><span class="sib-stat-label">52W Low</span><span id="sib-52l">—</span></div>
           <div class="sib-stat"><span class="sib-stat-label">Volume</span><span id="sib-vol">—</span></div>
+          <div class="sib-stat"><span class="sib-stat-label">Std Dev</span><span id="sib-stddev">—</span></div>
         </div>
         <button id="btn-ai-analyze" class="btn-ai-analyze">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -90,16 +91,34 @@
       <!-- AI Analyst Panel -->
       <div class="ai-analyst-panel hidden" id="ai-analyst-panel">
         <div class="aip-header">
-          <div class="aip-title">🤖 AI Analyst Report — <span id="aip-symbol">AAPL</span></div>
+          <div class="aip-title">🤖 AI Analyst — <span id="aip-symbol">AAPL</span></div>
+          <div class="aip-tabs">
+            <button class="aip-tab active" id="tab-report">Report</button>
+            <button class="aip-tab" id="tab-chat">Interactive Chat</button>
+          </div>
           <button id="btn-close-aip" class="btn-close-aip">&times;</button>
         </div>
         <div class="aip-body" id="aip-body">
-          <div class="aip-loader">
-            <div class="loading-spinner"></div>
-            <p>Running multi-agent portfolio, technical and fundamental checks via Groq LLaMA 3.3...</p>
+          <div id="report-tab-content" class="tab-pane-content">
+            <div class="aip-loader">
+              <div class="loading-spinner"></div>
+              <p>Running multi-agent portfolio, technical and fundamental checks via Groq LLaMA 3.3...</p>
+            </div>
+            <div class="aip-content hidden" id="aip-content">
+              <!-- Dynamically populated -->
+            </div>
           </div>
-          <div class="aip-content hidden" id="aip-content">
-            <!-- Dynamically populated -->
+          
+          <div id="chat-tab-content" class="tab-pane-content hidden">
+            <div class="chat-messages-container" id="chat-messages">
+              <div class="chat-bubble assistant-msg">
+                Hello! I am your AI Market Analyst. Ask me anything about the current chart context, toggle indicators, or load different stocks. Try saying <em>"Toggle the RSI indicator and explain it"</em> or <em>"Load TSLA stock"</em>!
+              </div>
+            </div>
+            <div class="chat-input-wrapper">
+              <input type="text" id="chat-input" placeholder="Ask AI Analyst / control graph..." autocomplete="off">
+              <button id="chat-send-btn">Send</button>
+            </div>
           </div>
         </div>
       </div>
@@ -141,6 +160,8 @@
           <label class="ind-toggle"><input type="checkbox" id="toggle-vol" checked> <span>Volume</span></label>
           <label class="ind-toggle"><input type="checkbox" id="toggle-rsi" checked> <span>RSI</span></label>
           <label class="ind-toggle"><input type="checkbox" id="toggle-macd" checked> <span>MACD</span></label>
+          <label class="ind-toggle"><input type="checkbox" id="toggle-atr"> <span>ATR</span></label>
+          <label class="ind-toggle"><input type="checkbox" id="toggle-stoch"> <span>Stochastic</span></label>
         </div>
       </div>
 
@@ -172,6 +193,18 @@
       <div class="chart-pane-wrapper" id="macd-pane-wrapper">
         <div class="chart-pane-label">MACD (12, 26, 9)</div>
         <div id="macd-chart" class="chart-pane indicator-pane"></div>
+      </div>
+
+      <!-- ATR Pane -->
+      <div class="chart-pane-wrapper" id="atr-pane-wrapper" style="display: none;">
+        <div class="chart-pane-label">ATR (14)</div>
+        <div id="atr-chart" class="chart-pane indicator-pane"></div>
+      </div>
+
+      <!-- Stochastic Pane -->
+      <div class="chart-pane-wrapper" id="stoch-pane-wrapper" style="display: none;">
+        <div class="chart-pane-label">Stochastic (14, 3)</div>
+        <div id="stoch-chart" class="chart-pane indicator-pane"></div>
       </div>
 
     </main>

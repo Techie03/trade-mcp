@@ -97,6 +97,74 @@ function calcBollingerBands(closes, period = 20, stdDevMult = 2) {
   });
 }
 
+function calcATR(candles, period = 14) {
+  const tr = [null];
+  for (let i = 1; i < candles.length; i++) {
+    const cur = candles[i];
+    const prev = candles[i - 1];
+    const tr1 = cur.high - cur.low;
+    const tr2 = Math.abs(cur.high - prev.close);
+    const tr3 = Math.abs(cur.low - prev.close);
+    tr.push(Math.max(tr1, tr2, tr3));
+  }
+  
+  const atr = Array(candles.length).fill(null);
+  if (candles.length < period + 1) return atr;
+  
+  let trSum = tr.slice(1, period + 1).reduce((acc, v) => acc + v, 0);
+  atr[period] = parseFloat((trSum / period).toFixed(4));
+  
+  for (let i = period + 1; i < candles.length; i++) {
+    const nextAtr = (atr[i - 1] * (period - 1) + tr[i]) / period;
+    atr[i] = parseFloat(nextAtr.toFixed(4));
+  }
+  return atr;
+}
+
+function calcStochastic(candles, kPeriod = 14, dPeriod = 3) {
+  const kValues = Array(candles.length).fill(null);
+  const dValues = Array(candles.length).fill(null);
+  
+  if (candles.length < kPeriod) return { k: kValues, d: dValues };
+  
+  for (let i = kPeriod - 1; i < candles.length; i++) {
+    const slice = candles.slice(i - kPeriod + 1, i + 1);
+    const highs = slice.map(c => c.high);
+    const lows = slice.map(c => c.low);
+    const highestHigh = Math.max(...highs);
+    const lowestLow = Math.min(...lows);
+    const close = candles[i].close;
+    
+    if (highestHigh - lowestLow === 0) {
+      kValues[i] = 50;
+    } else {
+      kValues[i] = parseFloat((((close - lowestLow) / (highestHigh - lowestLow)) * 100).toFixed(2));
+    }
+  }
+  
+  for (let i = kPeriod + dPeriod - 2; i < candles.length; i++) {
+    const slice = kValues.slice(i - dPeriod + 1, i + 1);
+    if (slice.some(v => v === null)) continue;
+    const sum = slice.reduce((acc, v) => acc + v, 0);
+    dValues[i] = parseFloat((sum / dPeriod).toFixed(2));
+  }
+  
+  return { k: kValues, d: dValues };
+}
+
+function calcPriceStdDev(candles) {
+  if (!candles || candles.length < 2) return { value: 0, percentage: 0 };
+  const closes = candles.map(c => c.close);
+  const mean = closes.reduce((acc, v) => acc + v, 0) / closes.length;
+  const variance = closes.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / closes.length;
+  const stdDev = Math.sqrt(variance);
+  const percentage = (stdDev / mean) * 100;
+  return {
+    value: parseFloat(stdDev.toFixed(2)),
+    percentage: parseFloat(percentage.toFixed(2))
+  };
+}
+
 // ─── Chart State ─────────────────────────────────────────────────────────────
 
 const INTERVAL_SECONDS = {
@@ -115,12 +183,14 @@ let realtimeTimer = null;
 let activeCandles = [];
 
 // Chart instances
-let mainChart = null, volChart = null, rsiChart = null, macdChart = null;
+let mainChart = null, volChart = null, rsiChart = null, macdChart = null, atrChart = null, stochChart = null;
 let mainSeries = null, volSeries = null, rsiSeries = null;
 let macdLineSeries = null, macdSignalSeries = null, macdHistSeries = null;
+let atrSeries = null, stochKSeries = null, stochDSeries = null;
 let ema9Series = null, ema21Series = null, sma50Series = null, sma200Series = null;
 let bbUpperSeries = null, bbMiddleSeries = null, bbLowerSeries = null;
 let rsiObSeries = null, rsiOsSeries = null;
+let stochObSeries = null, stochOsSeries = null;
 
 // ─── Chart Factory ────────────────────────────────────────────────────────────
 
@@ -151,18 +221,24 @@ function initCharts() {
   if (volChart) volChart.remove();
   if (rsiChart) rsiChart.remove();
   if (macdChart) macdChart.remove();
+  if (atrChart) atrChart.remove();
+  if (stochChart) stochChart.remove();
 
   mainChart = createChart('main-chart');
   volChart  = createChart('vol-chart',  { rightPriceScale: { scaleMargins: { top: 0.1, bottom: 0 } } });
   rsiChart  = createChart('rsi-chart',  { rightPriceScale: { scaleMargins: { top: 0.1, bottom: 0.1 } } });
   macdChart = createChart('macd-chart', { rightPriceScale: { scaleMargins: { top: 0.2, bottom: 0.2 } } });
+  atrChart  = createChart('atr-chart',  { rightPriceScale: { scaleMargins: { top: 0.1, bottom: 0.1 } } });
+  stochChart = createChart('stoch-chart', { rightPriceScale: { scaleMargins: { top: 0.1, bottom: 0.1 } } });
+
+  const allCharts = [mainChart, volChart, rsiChart, macdChart, atrChart, stochChart].filter(Boolean);
 
   // Sync crosshairs
-  [mainChart, volChart, rsiChart, macdChart].forEach(src => {
+  allCharts.forEach(src => {
     src.subscribeCrosshairMove(param => {
       const time = param.time;
       if (!time) return;
-      [mainChart, volChart, rsiChart, macdChart].forEach(dst => {
+      allCharts.forEach(dst => {
         if (dst !== src) {
           try { dst.setCrossHairXY && dst.applyOptions({}); } catch {}
         }
@@ -173,7 +249,7 @@ function initCharts() {
   // Sync time scales
   mainChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
     if (!range) return;
-    [volChart, rsiChart, macdChart].forEach(c => c.timeScale().setVisibleLogicalRange(range));
+    allCharts.filter(c => c !== mainChart).forEach(c => c.timeScale().setVisibleLogicalRange(range));
   });
 
   // Resize observer
@@ -303,6 +379,47 @@ function renderCharts(candles) {
     macdLineSeries.setData(toLineSeries(macdLine));
     macdSignalSeries.setData(toLineSeries(signalLine));
     macdHistSeries.setData(toBarSeries(histogram, 'rgba(48,209,88,0.6)', 'rgba(255,69,58,0.6)'));
+  }
+
+  // ── ATR ──
+  const atrVisible = document.getElementById('toggle-atr') && document.getElementById('toggle-atr').checked;
+  const atrWrapper = document.getElementById('atr-pane-wrapper');
+  if (atrWrapper) {
+    atrWrapper.style.display = atrVisible ? '' : 'none';
+  }
+  if (atrVisible && atrChart) {
+    atrSeries = atrChart.addLineSeries({ color: '#ff453a', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true });
+    const atrData = calcATR(candles, 14);
+    atrSeries.setData(toLineSeries(atrData));
+  }
+
+  // ── STOCHASTIC OSCILLATOR ──
+  const stochVisible = document.getElementById('toggle-stoch') && document.getElementById('toggle-stoch').checked;
+  const stochWrapper = document.getElementById('stoch-pane-wrapper');
+  if (stochWrapper) {
+    stochWrapper.style.display = stochVisible ? '' : 'none';
+  }
+  if (stochVisible && stochChart) {
+    stochKSeries = stochChart.addLineSeries({ color: '#64d2ff', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true });
+    stochDSeries = stochChart.addLineSeries({ color: '#af52de', lineWidth: 1, lineStyle: 2, priceLineVisible: false, lastValueVisible: false });
+    const { k, d } = calcStochastic(candles, 14, 3);
+    stochKSeries.setData(toLineSeries(k));
+    stochDSeries.setData(toLineSeries(d));
+
+    const firstTime = times[0], lastTime = times[times.length - 1];
+    stochObSeries = stochChart.addLineSeries({ color: 'rgba(255,69,58,0.4)', lineWidth: 1, lineStyle: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    stochObSeries.setData([{ time: firstTime, value: 80 }, { time: lastTime, value: 80 }]);
+    stochOsSeries = stochChart.addLineSeries({ color: 'rgba(48,209,88,0.4)', lineWidth: 1, lineStyle: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    stochOsSeries.setData([{ time: firstTime, value: 20 }, { time: lastTime, value: 20 }]);
+
+    stochChart.priceScale('right').applyOptions({ autoScale: false, minValue: 0, maxValue: 100 });
+  }
+
+  // ── PRICE STANDARD DEVIATION ──
+  const stdDevObj = calcPriceStdDev(candles);
+  const sibStdDevEl = document.getElementById('sib-stddev');
+  if (sibStdDevEl) {
+    sibStdDevEl.textContent = `${stdDevObj.value} (${stdDevObj.percentage}%)`;
   }
 
   mainChart.timeScale().fitContent();
@@ -797,6 +914,187 @@ document.addEventListener('DOMContentLoaded', () => {
       aipContent.classList.remove('hidden');
     }
   });
+
+  // AI Chat tabs & interactive conversation logic
+  const tabReport = document.getElementById('tab-report');
+  const tabChat = document.getElementById('tab-chat');
+  const reportContent = document.getElementById('report-tab-content');
+  const chatContent = document.getElementById('chat-tab-content');
+
+  const chatInput = document.getElementById('chat-input');
+  const chatSendBtn = document.getElementById('chat-send-btn');
+  const chatMessages = document.getElementById('chat-messages');
+
+  let chatHistory = [];
+
+  tabReport.addEventListener('click', () => {
+    tabReport.classList.add('active');
+    tabChat.classList.remove('active');
+    reportContent.classList.remove('hidden');
+    chatContent.classList.add('hidden');
+  });
+
+  tabChat.addEventListener('click', () => {
+    tabChat.classList.add('active');
+    tabReport.classList.remove('active');
+    chatContent.classList.remove('hidden');
+    reportContent.classList.add('hidden');
+    chatInput.focus();
+  });
+
+  function addSystemMessage(text) {
+    const div = document.createElement('div');
+    div.className = 'chat-bubble assistant-msg';
+    div.style.borderLeft = '3px solid var(--blue)';
+    div.innerHTML = `⚙️ <em>System Action:</em> ${text}`;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function executeActionCommand(action) {
+    if (!action) return;
+    
+    if (action.loadSymbol) {
+      const sym = action.loadSymbol.toUpperCase();
+      if (sym !== activeSymbol) {
+        loadSymbol(sym);
+        addSystemMessage(`Switched active chart to <strong>${sym}</strong>.`);
+      }
+    }
+    
+    if (action.toggleIndicator) {
+      const ind = action.toggleIndicator.toLowerCase();
+      const state = !!action.state;
+      const checkboxMap = {
+        'rsi': 'toggle-rsi',
+        'macd': 'toggle-macd',
+        'vol': 'toggle-vol',
+        'volume': 'toggle-vol',
+        'ema9': 'toggle-ema9',
+        'ema21': 'toggle-ema21',
+        'sma50': 'toggle-sma50',
+        'sma200': 'toggle-sma200',
+        'bb': 'toggle-bb',
+        'atr': 'toggle-atr',
+        'stoch': 'toggle-stoch',
+        'stochastic': 'toggle-stoch'
+      };
+      
+      const id = checkboxMap[ind];
+      if (id) {
+        const el = document.getElementById(id);
+        if (el && el.checked !== state) {
+          el.checked = state;
+          el.dispatchEvent(new Event('change'));
+          addSystemMessage(`${state ? 'Enabled' : 'Disabled'} indicator <strong>${el.nextElementSibling.textContent.trim()}</strong>.`);
+        }
+      }
+    }
+
+    if (action.changeChartType) {
+      const type = action.changeChartType.toLowerCase();
+      const btn = document.querySelector(`.ct-btn[data-type="${type}"]`);
+      if (btn && !btn.classList.contains('active')) {
+        btn.click();
+        addSystemMessage(`Changed chart display to <strong>${type}</strong>.`);
+      }
+    }
+  }
+
+  function renderResponseText(text) {
+    let cleanText = text;
+    const actionIndex = text.indexOf('ACTION:');
+    if (actionIndex !== -1) {
+      try {
+        const actionJsonStr = text.substring(actionIndex + 7).trim();
+        const action = JSON.parse(actionJsonStr);
+        setTimeout(() => executeActionCommand(action), 50);
+      } catch (err) {
+        console.error('Failed to parse action json:', err);
+      }
+      cleanText = text.substring(0, actionIndex).trim();
+    }
+
+    return cleanText
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`(.*?)`/g, '<code style="background: var(--bg-surface); padding: 2px 4px; border-radius: 4px; font-family: monospace;">$1</code>')
+      .replace(/\n/g, '<br>');
+  }
+
+  const sendChatMessage = async () => {
+    const msg = chatInput.value.trim();
+    if (!msg) return;
+
+    const userBubble = document.createElement('div');
+    userBubble.className = 'chat-bubble user-msg';
+    userBubble.textContent = msg;
+    chatMessages.appendChild(userBubble);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    chatInput.value = '';
+    chatInput.disabled = true;
+    chatSendBtn.disabled = true;
+
+    const activeIndicators = [];
+    document.querySelectorAll('.ind-toggle input').forEach(cb => {
+      if (cb.checked) {
+        activeIndicators.push(cb.id.replace('toggle-', ''));
+      }
+    });
+
+    const priceText = document.getElementById('sib-price')?.textContent || '—';
+    const stdDevText = document.getElementById('sib-stddev')?.textContent || '—';
+
+    const assistantBubble = document.createElement('div');
+    assistantBubble.className = 'chat-bubble assistant-msg';
+    assistantBubble.innerHTML = `<span style="color: var(--text-3)">Analyzing...</span>`;
+    chatMessages.appendChild(assistantBubble);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    try {
+      const resp = await fetch(`${API_BASE}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          symbol: activeSymbol,
+          message: msg,
+          history: chatHistory.slice(-6),
+          chartContext: {
+            price: priceText,
+            range: activeRange,
+            interval: activeInterval,
+            indicators: activeIndicators,
+            stdDev: stdDevText
+          }
+        })
+      });
+
+      if (!resp.ok) {
+        throw new Error(`HTTP ${resp.status}`);
+      }
+
+      const data = await resp.json();
+      assistantBubble.innerHTML = renderResponseText(data.response);
+      
+      chatHistory.push({ role: 'user', content: msg });
+      const actionIndex = data.response.indexOf('ACTION:');
+      const cleanResp = actionIndex !== -1 ? data.response.substring(0, actionIndex).trim() : data.response;
+      chatHistory.push({ role: 'assistant', content: cleanResp });
+
+    } catch (err) {
+      assistantBubble.className = 'chat-bubble system-error';
+      assistantBubble.innerHTML = `<strong>Error:</strong> ${err.message || err}`;
+    } finally {
+      chatInput.disabled = false;
+      chatSendBtn.disabled = false;
+      chatInput.focus();
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  };
+
+  chatSendBtn.addEventListener('click', sendChatMessage);
+  chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendChatMessage(); });
 
   // Initial load - load chart but do not add to watchlist on start
   loadSymbol('AAPL', '3mo', '1d', false);

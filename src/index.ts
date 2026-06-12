@@ -316,6 +316,42 @@ async function runHttp(): Promise<void> {
 
 
 
+  // ── REST API: AI Chat Analyst ───────────────────────────────────────────────
+  app.post('/api/chat', async (req, res) => {
+    try {
+      const { symbol, message, history = [], chartContext = {} } = req.body;
+      const { callAIChat, isAIAvailable } = await import('./providers/ai.js');
+
+      if (!isAIAvailable()) {
+        res.status(503).json({ error: 'AI provider not configured on backend. Set GROQ_API_KEY or NVIDIA_API_KEY.' });
+        return;
+      }
+
+      // Context injection
+      const enrichedUserMessage = `
+[Active Ticker: ${symbol}]
+- Last Price: ${chartContext.price ?? 'unknown'}
+- Range: ${chartContext.range ?? '3mo'}
+- Interval: ${chartContext.interval ?? '1d'}
+- Active Indicators: ${JSON.stringify(chartContext.indicators ?? [])}
+- Chart Std Dev: ${chartContext.stdDev ?? 'unknown'}
+
+User Message: ${message}
+`;
+
+      const chatMessages = [
+        ...history,
+        { role: 'user' as const, content: enrichedUserMessage }
+      ];
+
+      const { result, model } = await callAIChat(chatMessages);
+      res.json({ response: result, model });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: message });
+    }
+  });
+
   app.get('/', (req, res, next) => {
     if (req.headers.accept?.includes('application/json')) {
       res.json({
