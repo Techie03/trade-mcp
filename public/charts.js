@@ -556,6 +556,12 @@ const WATCHLIST = [
   { symbol: 'NFLX', name: 'Netflix Inc.' },
   { symbol: 'AMD', name: 'AMD' },
   { symbol: 'AVGO', name: 'Broadcom Inc.' },
+  { symbol: 'ADBE', name: 'Adobe Inc.' },
+  { symbol: 'CRM', name: 'Salesforce Inc.' },
+  { symbol: 'QCOM', name: 'Qualcomm Inc.' },
+  { symbol: 'COIN', name: 'Coinbase Global' },
+  { symbol: 'PLTR', name: 'Palantir Tech' },
+  { symbol: 'SMCI', name: 'Super Micro' },
 
   // Indian Stocks (NSE)
   { symbol: 'RELIANCE.NS', name: 'Reliance Ind.' },
@@ -566,25 +572,94 @@ const WATCHLIST = [
   { symbol: 'TATAMOTORS.NS', name: 'Tata Motors' },
   { symbol: 'SBIN.NS', name: 'SBI Bank' },
   { symbol: 'BHARTIARTL.NS', name: 'Bharti Airtel' },
+  { symbol: 'ITC.NS', name: 'ITC Limited' },
+  { symbol: 'LT.NS', name: 'Larsen & Toubro' },
+  { symbol: 'AXISBANK.NS', name: 'Axis Bank' },
+  { symbol: 'KOTAKBANK.NS', name: 'Kotak Mahindra' },
+  { symbol: 'WIPRO.NS', name: 'Wipro Limited' },
+  { symbol: 'TATACONSUM.NS', name: 'Tata Consumer' },
 
   // Crypto
   { symbol: 'BTC-USD', name: 'Bitcoin' },
   { symbol: 'ETH-USD', name: 'Ethereum' },
   { symbol: 'SOL-USD', name: 'Solana' },
+  { symbol: 'BNB-USD', name: 'Binance Coin' },
+  { symbol: 'XRP-USD', name: 'Ripple' },
+  { symbol: 'DOGE-USD', name: 'Dogecoin' },
 
   // Forex & Indices
   { symbol: 'EURUSD=X', name: 'EUR/USD' },
+  { symbol: 'GBPUSD=X', name: 'GBP/USD' },
+  { symbol: 'USDJPY=X', name: 'USD/JPY' },
   { symbol: '^NSEI', name: 'Nifty 50' },
-  { symbol: '^GSPC', name: 'S&P 500' }
+  { symbol: '^BSESN', name: 'BSE Sensex' },
+  { symbol: '^NSEBANK', name: 'Nifty Bank' },
+  { symbol: '^GSPC', name: 'S&P 500' },
+  { symbol: '^DJI', name: 'Dow 30' },
+  { symbol: '^IXIC', name: 'Nasdaq' }
+];
+
+const SECONDARY_WATCHLIST = [
+  // US Stocks (Secondary)
+  { symbol: 'JPM', name: 'JPMorgan Chase' },
+  { symbol: 'V', name: 'Visa Inc.' },
+  { symbol: 'MA', name: 'Mastercard Inc.' },
+  { symbol: 'WMT', name: 'Walmart Inc.' },
+  { symbol: 'COST', name: 'Costco Wholesale' },
+  { symbol: 'BAC', name: 'Bank of America' },
+  { symbol: 'DIS', name: 'Walt Disney Co.' },
+  { symbol: 'INTC', name: 'Intel Corp.' },
+  { symbol: 'NKE', name: 'Nike Inc.' },
+  { symbol: 'PFE', name: 'Pfizer Inc.' },
+  { symbol: 'T', name: 'AT&T Inc.' },
+  { symbol: 'KO', name: 'Coca-Cola Co.' },
+  { symbol: 'PEP', name: 'PepsiCo Inc.' },
+  { symbol: 'SBUX', name: 'Starbucks Corp.' },
+  { symbol: 'MRNA', name: 'Moderna Inc.' },
+
+  // Indian Stocks (NSE Secondary)
+  { symbol: 'M&M.NS', name: 'Mahindra & Mah.' },
+  { symbol: 'ADANIENT.NS', name: 'Adani Ent.' },
+  { symbol: 'SUNPHARMA.NS', name: 'Sun Pharma' },
+  { symbol: 'TITAN.NS', name: 'Titan Company' },
+  { symbol: 'ASIANPAINT.NS', name: 'Asian Paints' },
+  { symbol: 'ULTRACEMCO.NS', name: 'UltraTech Cement' },
+  { symbol: 'NESTLEIND.NS', name: 'Nestle India' },
+  { symbol: 'BAJAJFINSV.NS', name: 'Bajaj Finserv' },
+  { symbol: 'NTPC.NS', name: 'NTPC Limited' },
+  { symbol: 'ONGC.NS', name: 'ONGC' },
+  { symbol: 'POWERGRID.NS', name: 'Power Grid' },
+  { symbol: 'COALINDIA.NS', name: 'Coal India' },
+  { symbol: 'ADANIPORTS.NS', name: 'Adani Ports' },
+  { symbol: 'HINDALCO.NS', name: 'Hindalco Ind.' },
+  { symbol: 'JIOFIN.NS', name: 'Jio Financial' },
+
+  // Crypto (Secondary)
+  { symbol: 'ADA-USD', name: 'Cardano' },
+  { symbol: 'DOT-USD', name: 'Polkadot' },
+  { symbol: 'LINK-USD', name: 'Chainlink' },
+  { symbol: 'MATIC-USD', name: 'Polygon' },
+  { symbol: 'LTC-USD', name: 'Litecoin' },
+  { symbol: 'UNI-USD', name: 'Uniswap' },
+
+  // Forex & Indices (Secondary)
+  { symbol: 'AUDUSD=X', name: 'AUD/USD' },
+  { symbol: 'USDCAD=X', name: 'USD/CAD' },
+  { symbol: 'USDCHF=X', name: 'USD/CHF' },
+  { symbol: '^FTSE', name: 'FTSE 100' },
+  { symbol: '^N225', name: 'Nikkei 225' },
+  { symbol: '^HSI', name: 'Hang Seng Index' },
+  { symbol: '^GDAXI', name: 'DAX Performance' },
+  { symbol: '^FCHI', name: 'CAC 40' }
 ];
 
 const WATCHLIST_SYMBOLS = WATCHLIST.map(w => w.symbol);
 
-
 function renderWatchlist() {
   const wlContainer = document.getElementById('watchlist');
   if (!wlContainer) return;
-  wlContainer.innerHTML = WATCHLIST.map(item => `
+  
+  let html = WATCHLIST.map(item => `
     <div class="watchlist-item ${item.symbol === activeSymbol ? 'active' : ''}" data-symbol="${item.symbol}">
       <div class="wi-symbol">${item.symbol.replace('.NS', '').replace('-USD', '').replace('=X', '').replace('^', '')}</div>
       <div class="wi-name">${item.name}</div>
@@ -593,12 +668,37 @@ function renderWatchlist() {
     </div>
   `).join('');
 
+  if (SECONDARY_WATCHLIST.length > 0) {
+    html += `
+      <div style="padding: 10px 12px; text-align: center;">
+        <button id="btn-load-more-wl" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; color: var(--text-2); font-size: 11px; padding: 6px 12px; cursor: pointer; width: 100%; transition: all 0.15s; outline: none;">Load More Stocks ⏷</button>
+      </div>
+    `;
+  }
+
+  wlContainer.innerHTML = html;
+
   // Bind click event listeners to new watchlist elements
   wlContainer.querySelectorAll('.watchlist-item').forEach(item => {
     item.addEventListener('click', () => {
       loadSymbol(item.dataset.symbol);
     });
   });
+
+  const loadMoreBtn = document.getElementById('btn-load-more-wl');
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', () => {
+      const batch = SECONDARY_WATCHLIST.splice(0, 25);
+      batch.forEach(item => {
+        if (!WATCHLIST_SYMBOLS.includes(item.symbol)) {
+          WATCHLIST.push(item);
+          WATCHLIST_SYMBOLS.push(item.symbol);
+        }
+      });
+      renderWatchlist();
+      loadWatchlistPrices();
+    });
+  }
 }
 
 async function loadWatchlistPrices() {
