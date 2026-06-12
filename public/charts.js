@@ -6,6 +6,19 @@ const API_BASE = window.location.origin.includes('localhost') || window.location
   ? window.location.origin
   : 'https://nishith374-stock-mcp.hf.space';
 
+function getCurrencySymbol(symbol) {
+  if (!symbol) return '$';
+  const sym = symbol.toUpperCase();
+  if (sym.endsWith('.NS') || sym.endsWith('.BO') || sym.startsWith('^NSE')) {
+    return '₹';
+  }
+  if (sym.includes('EURUSD')) {
+    return '€';
+  }
+  return '$';
+}
+
+
 // ─── Drawing Tools, Replay & Alerts State ─────────────────────────────────────
 let activeDrawingTool = 'select';
 let drawings = [];
@@ -491,7 +504,14 @@ async function fetchAndRenderQuote(symbol) {
 }
 
 function updateInfoBar(q) {
-  const fmt = (n, dec = 2, prefix = '') => n != null ? prefix + Number(n).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) : '—';
+  const symbol = q.symbol || activeSymbol;
+  const curr = getCurrencySymbol(symbol);
+  const fmt = (n, dec = 2, prefix = curr) => {
+    if (n == null) return '—';
+    const isNegative = n < 0;
+    const absVal = Math.abs(n);
+    return (isNegative ? '-' : '') + prefix + absVal.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  };
   const fmtVol = (n) => n > 1e9 ? (n/1e9).toFixed(2)+'B' : n > 1e6 ? (n/1e6).toFixed(2)+'M' : n > 1e3 ? (n/1e3).toFixed(1)+'K' : String(n ?? '—');
 
   document.getElementById('sib-symbol').textContent = q.symbol || activeSymbol;
@@ -499,7 +519,9 @@ function updateInfoBar(q) {
   document.getElementById('sib-price').textContent = fmt(q.price);
   const changeEl = document.getElementById('sib-change');
   const pct = q.changePercent?.toFixed(2);
-  changeEl.textContent = `${q.change >= 0 ? '+' : ''}${fmt(q.change)} (${q.change >= 0 ? '+' : ''}${pct}%)`;
+  const changePrefix = q.change >= 0 ? '+' : '';
+  changeEl.textContent = `${changePrefix}${fmt(q.change)} (${q.change >= 0 ? '+' : ''}${pct}%)`;
+
   changeEl.className = 'sib-change ' + (q.change >= 0 ? 'up' : 'down');
   document.getElementById('sib-open').textContent = fmt(q.open);
   document.getElementById('sib-high').textContent = fmt(q.high);
@@ -591,7 +613,7 @@ async function loadWatchlistPrices() {
       const priceEl  = document.getElementById(`wl-${q.symbol}`);
       const changeEl = document.getElementById(`wl-ch-${q.symbol}`);
       if (priceEl) {
-        const oldPrice = parseFloat(priceEl.textContent.replace(/,/g, ''));
+        const oldPrice = parseFloat(priceEl.textContent.replace(/[^0-9.-]/g, ''));
         const newPrice = q.price;
         if (!isNaN(oldPrice) && newPrice !== oldPrice && q.symbol !== activeSymbol) {
           const wlItem = document.querySelector(`.watchlist-item[data-symbol="${q.symbol}"]`);
@@ -601,7 +623,8 @@ async function loadWatchlistPrices() {
             wlItem.classList.add(newPrice > oldPrice ? 'flash-green-bg' : 'flash-red-bg');
           }
         }
-        priceEl.textContent = q.price != null ? q.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+        const curr = getCurrencySymbol(q.symbol);
+        priceEl.textContent = q.price != null ? curr + q.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
       }
       if (changeEl) {
         const pct = q.changePercent?.toFixed(2);
@@ -683,7 +706,7 @@ function startRealtimeUpdates(symbol) {
       // Update the watchlist item price & change with flashing
       const wlPriceEl = document.getElementById(`wl-${symbol}`);
       if (wlPriceEl) {
-        const oldWlPrice = parseFloat(wlPriceEl.textContent.replace(/,/g, ''));
+        const oldWlPrice = parseFloat(wlPriceEl.textContent.replace(/[^0-9.-]/g, ''));
         if (!isNaN(oldWlPrice) && newPrice !== oldWlPrice) {
           const wlItem = document.querySelector(`.watchlist-item[data-symbol="${symbol}"]`);
           if (wlItem) {
@@ -692,7 +715,8 @@ function startRealtimeUpdates(symbol) {
             wlItem.classList.add(newPrice > oldWlPrice ? 'flash-green-bg' : 'flash-red-bg');
           }
         }
-        wlPriceEl.textContent = newPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const curr = getCurrencySymbol(symbol);
+        wlPriceEl.textContent = curr + newPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const wlChgEl = document.getElementById(`wl-ch-${symbol}`);
         if (wlChgEl) {
           const pct = q.changePercent?.toFixed(2);
@@ -896,10 +920,11 @@ async function startTickerTape() {
     container.innerHTML = (data.quotes || []).map(q => {
       if (!q) return '';
       const isUp = q.changePercent >= 0;
+      const curr = getCurrencySymbol(q.symbol);
       return `
         <div class="ticker-item clickable" onclick="loadSymbol('${q.symbol}')" style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 500; cursor: pointer;">
           <span class="ticker-sym" style="color: var(--text); font-weight: 700;">${q.symbol.replace('^', '')}</span>
-          <span class="ticker-val" style="color: var(--text-2);">${q.price.toLocaleString()}</span>
+          <span class="ticker-val" style="color: var(--text-2);">${curr}${q.price.toLocaleString()}</span>
           <span class="ticker-pct ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${q.changePercent.toFixed(2)}%</span>
         </div>
       `;
@@ -922,6 +947,7 @@ async function fetchMovers(type = 'gainers') {
 
     list.innerHTML = displayList.map(q => {
       const isUp = q.changePercent >= 0;
+      const curr = getCurrencySymbol(q.symbol);
       return `
         <div class="mover-item" onclick="loadSymbol('${q.symbol}')">
           <div class="mover-left">
@@ -929,7 +955,7 @@ async function fetchMovers(type = 'gainers') {
             <span class="mover-name">${q.name || ''}</span>
           </div>
           <div class="mover-right">
-            <span class="mover-price">${q.price.toFixed(2)}</span>
+            <span class="mover-price">${curr}${q.price.toFixed(2)}</span>
             <span class="mover-change ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${q.changePercent.toFixed(2)}%</span>
           </div>
         </div>
