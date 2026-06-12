@@ -1,18 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trade MCP — Worldwide Stock Market Intelligence for LLMs</title>
-  <meta name="description" content="An elite, production-ready Model Context Protocol (MCP) server providing live global equity quotes, F&O options, EOD Bhavcopy parsing, technical indicators, and AI analysis for LLMs.">
-  <meta name="keywords" content="mcp, model context protocol, trading mcp, nse mcp, stock market mcp, ai trading, finance mcp">
+  <title>Trade MCP - Worldwide Stock Market Intelligence for LLMs</title>
+  <meta name="description"
+    content="An elite, production-ready Model Context Protocol (MCP) server providing live global equity quotes, F&O options, EOD Bhavcopy parsing, technical indicators, and AI analysis for LLMs.">
+  <meta name="keywords"
+    content="mcp, model context protocol, trading mcp, nse mcp, stock market mcp, ai trading, finance mcp">
+  
+  <!-- Favicons (Inlined Base64 to bypass binary hosting constraints) -->
+  <link rel="icon" type="image/png" href="data:image/png;base64,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" />
+  <link rel="apple-touch-icon" href="data:image/png;base64,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.css" />
+  <meta name="apple-mobile-web-app-title" content="Trade MCP" />
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <!-- CSS -->
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
 
   <!-- Background Glows -->
@@ -40,13 +52,15 @@
         <div class="badge">PRO VERSION 1.0</div>
         <h1 class="hero-title">The Stock Market Intelligence Layer for LLMs</h1>
         <p class="hero-subtitle">
-          An elite Model Context Protocol (MCP) server equipping your AI agents (Claude, Cursor, Manus, and more) with 28 advanced market tools, live global data, and a Python execution sandbox.
+          An elite Model Context Protocol (MCP) server equipping your AI agents (Claude, Cursor, Manus, and more) with
+          28 advanced market tools, live global data, and a Python execution sandbox.
         </p>
         <div class="hero-cta">
           <a href="#quickstart" class="btn btn-primary">Get Config Block</a>
           <a href="https://github.com/Techie03/trade-mcp" target="_blank" class="btn btn-secondary">
             <svg class="icon-git" viewBox="0 0 24 24" width="18" height="18">
-              <path fill="currentColor" d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/>
+              <path fill="currentColor"
+                d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z" />
             </svg>
             Star on GitHub
           </a>
@@ -58,7 +72,8 @@
     <section class="playground-section">
       <div class="section-title-wrapper">
         <h2 class="section-title">See trade-mcp in Action</h2>
-        <p class="section-desc">Select a preset below to see how Claude uses our tools in real-time to answer complex financial queries.</p>
+        <p class="section-desc">Select a preset below to see how Claude uses our tools in real-time to answer complex
+          financial queries.</p>
       </div>
 
       <div class="playground-container">
@@ -119,7 +134,8 @@
       <div class="section-title-wrapper">
         <div class="section-badge">CAPABILITIES</div>
         <h2 class="section-title">28 Tools Across 7 Modules</h2>
-        <p class="section-desc">An extensive suite of stock market intelligence pipelines compiled into clean, lightning-fast tools.</p>
+        <p class="section-desc">An extensive suite of stock market intelligence pipelines compiled into clean,
+          lightning-fast tools.</p>
       </div>
 
       <div class="bento-grid">
@@ -127,7 +143,8 @@
         <div class="bento-card card-large gradient-border purple-glow">
           <div class="card-icon">📈</div>
           <h3 class="card-title">Live & Historical Market Data</h3>
-          <p class="card-desc">Fetch worldwide stock prices (including US and Indian exchanges) with real-time quote updates, historical OHLCV data spanning multiple decades, and instant symbol search queries.</p>
+          <p class="card-desc">Fetch worldwide stock prices (including US and Indian exchanges) with real-time quote
+            updates, historical OHLCV data spanning multiple decades, and instant symbol search queries.</p>
           <div class="card-tags">
             <span class="tag">get_quote</span>
             <span class="tag">get_historical</span>
@@ -140,7 +157,9 @@
         <div class="bento-card card-medium gradient-border green-glow">
           <div class="card-icon">🇮🇳</div>
           <h3 class="card-title">Indian Market Specialized</h3>
-          <p class="card-desc">Deep integration with official NSE endpoints, returning options chain data, circuit limits, VWAP, corporate actions feeds, and automated unzipping/parsing of NSE Bhavcopy archives in-memory.</p>
+          <p class="card-desc">Deep integration with official NSE endpoints, returning options chain data, circuit
+            limits, VWAP, corporate actions feeds, and automated unzipping/parsing of NSE Bhavcopy archives in-memory.
+          </p>
           <div class="card-tags">
             <span class="tag">get_nse_quote</span>
             <span class="tag">get_nse_option_chain</span>
@@ -153,7 +172,8 @@
         <div class="bento-card card-medium gradient-border blue-glow">
           <div class="card-icon">🐍</div>
           <h3 class="card-title">Python Data-Science Sandbox</h3>
-          <p class="card-desc">Allows LLMs to dynamically generate and run Python analysis scripts on local directories. Supports mathematical analysis and chart generation using `pandas`, `numpy`, and `matplotlib`.</p>
+          <p class="card-desc">Allows LLMs to dynamically generate and run Python analysis scripts on local directories.
+            Supports mathematical analysis and chart generation using `pandas`, `numpy`, and `matplotlib`.</p>
           <div class="card-tags">
             <span class="tag">run_python_analysis</span>
           </div>
@@ -163,7 +183,8 @@
         <div class="bento-card card-small gradient-border">
           <div class="card-icon">🏢</div>
           <h3 class="card-title">Fundamentals & Financials</h3>
-          <p class="card-desc">Income statements, balance sheets, cash flows, and key earnings metrics (Beta, P/E ratio, market cap, consensus EPS projections).</p>
+          <p class="card-desc">Income statements, balance sheets, cash flows, and key earnings metrics (Beta, P/E ratio,
+            market cap, consensus EPS projections).</p>
           <div class="card-tags">
             <span class="tag">get_company_overview</span>
             <span class="tag">get_financials</span>
@@ -174,7 +195,8 @@
         <div class="bento-card card-small gradient-border">
           <div class="card-icon">🤖</div>
           <h3 class="card-title">AI Market Intelligence</h3>
-          <p class="card-desc">Leverages Groq (LLaMA 3.3) and NVIDIA NIM APIs to perform stock sentiment analysis, automated trade signal generation, news digests, and portfolio audits.</p>
+          <p class="card-desc">Leverages Groq (LLaMA 3.3) and NVIDIA NIM APIs to perform stock sentiment analysis,
+            automated trade signal generation, news digests, and portfolio audits.</p>
           <div class="card-tags">
             <span class="tag">analyze_sentiment</span>
             <span class="tag">get_stock_insight</span>
@@ -185,7 +207,8 @@
         <div class="bento-card card-small gradient-border">
           <div class="card-icon">📰</div>
           <h3 class="card-title">Global News & Indicators</h3>
-          <p class="card-desc">Pulls real-time financial news feeds alongside technical indicators like RSI, MACD, Bollinger Bands, and Sector performance.</p>
+          <p class="card-desc">Pulls real-time financial news feeds alongside technical indicators like RSI, MACD,
+            Bollinger Bands, and Sector performance.</p>
           <div class="card-tags">
             <span class="tag">get_news</span>
             <span class="tag">get_technical_indicators</span>
@@ -199,7 +222,8 @@
       <div class="section-title-wrapper">
         <div class="section-badge">INTEGRATION</div>
         <h2 class="section-title">Connect in 60 Seconds</h2>
-        <p class="section-desc">Instantly register the server with your local LLM editor or desktop client using our remote SSE connection.</p>
+        <p class="section-desc">Instantly register the server with your local LLM editor or desktop client using our
+          remote SSE connection.</p>
       </div>
 
       <div class="config-container">
@@ -218,7 +242,8 @@
             <div class="code-file-path" id="code-path">%APPDATA%\Claude\claude_desktop_config.json</div>
             <button class="btn-copy" id="btn-copy">
               <svg class="icon-copy" viewBox="0 0 24 24" width="16" height="16">
-                <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                <path fill="currentColor"
+                  d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
               </svg>
               Copy Config
             </button>
@@ -233,7 +258,8 @@
   <footer class="main-footer">
     <div class="footer-container">
       <p class="disclaimer">
-        Disclaimer: This server is built strictly for educational and informational purposes. None of the data, tools, or responses generated constitute financial advice. Always verify trading data independently.
+        Disclaimer: This server is built strictly for educational and informational purposes. None of the data, tools,
+        or responses generated constitute financial advice. Always verify trading data independently.
       </p>
       <div class="footer-links">
         <a href="https://github.com/Techie03/trade-mcp" target="_blank">GitHub</a>
@@ -249,4 +275,5 @@
   <!-- JS -->
   <script src="app.js"></script>
 </body>
+
 </html>
