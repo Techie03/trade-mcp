@@ -103,6 +103,8 @@ let activeSymbol = 'AAPL';
 let activeRange = '3mo';
 let activeInterval = '1d';
 let activeChartType = 'candlestick';
+let realtimeTimer = null;
+let activeCandles = [];
 
 // Chart instances
 let mainChart = null, volChart = null, rsiChart = null, macdChart = null;
@@ -312,12 +314,17 @@ async function fetchAndRender(symbol, range, interval) {
       throw new Error('No candle data returned');
     }
 
+    activeCandles = data.candles;
+
     initCharts();
     renderCharts(data.candles);
     loading.classList.add('hidden');
 
     // Also fetch quote for the info bar
     fetchAndRenderQuote(symbol);
+
+    // Start realtime loop
+    startRealtimeUpdates(symbol);
 
   } catch (err) {
     loading.classList.add('hidden');
@@ -421,7 +428,19 @@ async function loadWatchlistPrices() {
       if (!q) return;
       const priceEl  = document.getElementById(`wl-${q.symbol}`);
       const changeEl = document.getElementById(`wl-ch-${q.symbol}`);
-      if (priceEl) priceEl.textContent = q.price != null ? q.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+      if (priceEl) {
+        const oldPrice = parseFloat(priceEl.textContent.replace(/,/g, ''));
+        const newPrice = q.price;
+        if (!isNaN(oldPrice) && newPrice !== oldPrice && q.symbol !== activeSymbol) {
+          const wlItem = document.querySelector(`.watchlist-item[data-symbol="${q.symbol}"]`);
+          if (wlItem) {
+            wlItem.classList.remove('flash-green-bg', 'flash-red-bg');
+            void wlItem.offsetWidth;
+            wlItem.classList.add(newPrice > oldPrice ? 'flash-green-bg' : 'flash-red-bg');
+          }
+        }
+        priceEl.textContent = q.price != null ? q.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+      }
       if (changeEl) {
         const pct = q.changePercent?.toFixed(2);
         changeEl.textContent = pct != null ? `${q.changePercent >= 0 ? '+' : ''}${pct}%` : '—';
@@ -431,12 +450,102 @@ async function loadWatchlistPrices() {
   } catch {}
 }
 
+function startRealtimeUpdates(symbol) {
+  if (realtimeTimer) {
+    clearInterval(realtimeTimer);
+  }
+
+  realtimeTimer = setInterval(async () => {
+    if (document.hidden) return;
+
+    try {
+      const resp = await fetch(`${API_BASE}/api/quote?symbol=${encodeURIComponent(symbol)}`);
+      if (!resp.ok) return;
+      const q = await resp.json();
+
+      if (symbol !== activeSymbol) return;
+
+      const priceEl = document.getElementById('sib-price');
+      const oldPrice = parseFloat(priceEl.textContent.replace(/,/g, ''));
+      const newPrice = q.price;
+
+      if (!isNaN(oldPrice) && newPrice !== oldPrice) {
+        const infoBar = document.getElementById('stock-info-bar');
+        infoBar.classList.remove('flash-green-bg', 'flash-red-bg');
+        void infoBar.offsetWidth;
+        infoBar.classList.add(newPrice > oldPrice ? 'flash-green-bg' : 'flash-red-bg');
+      }
+
+      updateInfoBar(q);
+
+      // Update the last candle on the chart!
+      if (activeCandles && activeCandles.length > 0 && mainSeries) {
+        const lastCandle = activeCandles[activeCandles.length - 1];
+        const quoteDate = new Date(q.timestamp * 1000).toISOString().split('T')[0];
+
+        if (lastCandle.date === quoteDate) {
+          lastCandle.close = q.price;
+          if (q.high > lastCandle.high) lastCandle.high = q.high;
+          if (q.low < lastCandle.low) lastCandle.low = q.low;
+        } else if (quoteDate > lastCandle.date) {
+          const newCandle = {
+            date: quoteDate,
+            open: q.open || q.price,
+            high: q.high || q.price,
+            low: q.low || q.price,
+            close: q.price,
+            volume: q.volume || 0
+          };
+          activeCandles.push(newCandle);
+        }
+
+        renderCharts(activeCandles);
+      }
+
+      // Update the watchlist item price & change with flashing
+      const wlPriceEl = document.getElementById(`wl-${symbol}`);
+      if (wlPriceEl) {
+        const oldWlPrice = parseFloat(wlPriceEl.textContent.replace(/,/g, ''));
+        if (!isNaN(oldWlPrice) && newPrice !== oldWlPrice) {
+          const wlItem = document.querySelector(`.watchlist-item[data-symbol="${symbol}"]`);
+          if (wlItem) {
+            wlItem.classList.remove('flash-green-bg', 'flash-red-bg');
+            void wlItem.offsetWidth;
+            wlItem.classList.add(newPrice > oldWlPrice ? 'flash-green-bg' : 'flash-red-bg');
+          }
+        }
+        wlPriceEl.textContent = newPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const wlChgEl = document.getElementById(`wl-ch-${symbol}`);
+        if (wlChgEl) {
+          const pct = q.changePercent?.toFixed(2);
+          wlChgEl.textContent = pct != null ? `${q.changePercent >= 0 ? '+' : ''}${pct}%` : '—';
+          wlChgEl.className = 'wi-change ' + (q.changePercent >= 0 ? 'up' : 'down');
+        }
+      }
+
+      // Also dynamically update the watchlist item name if it was newly added and had just the symbol placeholder
+      const wlItemName = document.querySelector(`.watchlist-item[data-symbol="${symbol}"] .wi-name`);
+      if (wlItemName && wlItemName.textContent === symbol) {
+        wlItemName.textContent = q.name || symbol;
+      }
+
+    } catch (err) {
+      console.error('Realtime update fetch error:', err);
+    }
+  }, 4000); // Poll every 4 seconds for a snappy, real-time feel
+}
+
 // ─── Event Listeners ──────────────────────────────────────────────────────────
 
 function loadSymbol(symbol, range, interval) {
   activeSymbol = symbol;
   activeRange = range || activeRange;
   activeInterval = interval || activeInterval;
+
+  if (realtimeTimer) {
+    clearInterval(realtimeTimer);
+    realtimeTimer = null;
+  }
 
   // Add symbol dynamically if not in watchlist
   if (!WATCHLIST_SYMBOLS.includes(symbol)) {

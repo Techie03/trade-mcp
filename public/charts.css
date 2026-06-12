@@ -270,3 +270,20 @@ body {
   .sib-stats { display: none; }
   .indicators-toggle-group { display: none; }
 }
+
+/* Price Flash Animations */
+@keyframes flash-green {
+  0% { background: rgba(48,209,88,0.22); }
+  100% { background: transparent; }
+}
+@keyframes flash-red {
+  0% { background: rgba(255,69,58,0.22); }
+  100% { background: transparent; }
+}
+.flash-green-bg {
+  animation: flash-green 1s ease-out;
+}
+.flash-red-bg {
+  animation: flash-red 1s ease-out;
+}
+
