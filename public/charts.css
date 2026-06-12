@@ -508,6 +508,9 @@ body {
   flex-direction: column;
   gap: 12px;
   width: 100%;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
 }
 .tab-pane-content.hidden {
   display: none !important;
@@ -517,7 +520,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  height: 230px;
+  flex: 1;
   overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: 6px;
