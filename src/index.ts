@@ -87,9 +87,6 @@ async function runHttp(): Promise<void> {
   app.use(cors());
   app.use(express.json());
   
-  // Serve static files from 'public' folder
-  app.use(express.static('public'));
-
   // Track active SSE transports by session
   const transports = new Map<string, SSEServerTransport>();
 
@@ -151,6 +148,9 @@ async function runHttp(): Promise<void> {
       next();
     }
   });
+
+  // Serve static files from 'public' folder
+  app.use(express.static('public'));
 
   app.listen(port, () => {
     printBanner();
