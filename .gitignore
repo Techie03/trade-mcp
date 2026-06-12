@@ -28,3 +28,5 @@ __pycache__/
 
 # Local helper scripts
 start_remote.bat
+
+.vercel

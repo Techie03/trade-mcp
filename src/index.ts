@@ -178,9 +178,14 @@ async function runHttp(): Promise<void> {
   ];
   app.get('/api/ticker', async (req, res) => {
     try {
+      const querySymbols = req.query.symbols as string;
+      const symbolsList = querySymbols
+        ? querySymbols.split(',').map(s => s.trim().toUpperCase()).filter(Boolean)
+        : TICKER_SYMBOLS;
+
       const { getQuote } = await import('./providers/yahoo.js');
       const results = await Promise.allSettled(
-        TICKER_SYMBOLS.map(sym => getQuote(sym))
+        symbolsList.map(sym => getQuote(sym))
       );
       const quotes = results
         .map((r, i) => r.status === 'fulfilled' ? r.value : null)

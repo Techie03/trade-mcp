@@ -355,11 +355,66 @@ function updateInfoBar(q) {
 
 // ─── Watchlist ────────────────────────────────────────────────────────────────
 
-const WATCHLIST_SYMBOLS = ['AAPL','MSFT','NVDA','TSLA','GOOGL','AMZN','META','RELIANCE.NS','TCS.NS','BTC-USD'];
+const WATCHLIST = [
+  // US Stocks
+  { symbol: 'AAPL', name: 'Apple Inc.' },
+  { symbol: 'MSFT', name: 'Microsoft Corp.' },
+  { symbol: 'NVDA', name: 'NVIDIA Corp.' },
+  { symbol: 'TSLA', name: 'Tesla Inc.' },
+  { symbol: 'GOOGL', name: 'Alphabet Inc.' },
+  { symbol: 'AMZN', name: 'Amazon.com' },
+  { symbol: 'META', name: 'Meta Platforms' },
+  { symbol: 'NFLX', name: 'Netflix Inc.' },
+  { symbol: 'AMD', name: 'AMD' },
+  { symbol: 'AVGO', name: 'Broadcom Inc.' },
+
+  // Indian Stocks (NSE)
+  { symbol: 'RELIANCE.NS', name: 'Reliance Ind.' },
+  { symbol: 'TCS.NS', name: 'Tata Consult.' },
+  { symbol: 'INFY.NS', name: 'Infosys Ltd' },
+  { symbol: 'HDFCBANK.NS', name: 'HDFC Bank' },
+  { symbol: 'ICICIBANK.NS', name: 'ICICI Bank' },
+  { symbol: 'TATAMOTORS.NS', name: 'Tata Motors' },
+  { symbol: 'SBIN.NS', name: 'SBI Bank' },
+  { symbol: 'BHARTIARTL.NS', name: 'Bharti Airtel' },
+
+  // Crypto
+  { symbol: 'BTC-USD', name: 'Bitcoin' },
+  { symbol: 'ETH-USD', name: 'Ethereum' },
+  { symbol: 'SOL-USD', name: 'Solana' },
+
+  // Forex & Indices
+  { symbol: 'EURUSD=X', name: 'EUR/USD' },
+  { symbol: '^NSEI', name: 'Nifty 50' },
+  { symbol: '^GSPC', name: 'S&P 500' }
+];
+
+const WATCHLIST_SYMBOLS = WATCHLIST.map(w => w.symbol);
+
+function renderWatchlist() {
+  const wlContainer = document.getElementById('watchlist');
+  if (!wlContainer) return;
+  wlContainer.innerHTML = WATCHLIST.map(item => `
+    <div class="watchlist-item ${item.symbol === activeSymbol ? 'active' : ''}" data-symbol="${item.symbol}">
+      <div class="wi-symbol">${item.symbol.replace('.NS', '').replace('-USD', '').replace('=X', '').replace('^', '')}</div>
+      <div class="wi-name">${item.name}</div>
+      <div class="wi-price" id="wl-${item.symbol}">—</div>
+      <div class="wi-change" id="wl-ch-${item.symbol}">—</div>
+    </div>
+  `).join('');
+
+  // Bind click event listeners to new watchlist elements
+  wlContainer.querySelectorAll('.watchlist-item').forEach(item => {
+    item.addEventListener('click', () => {
+      loadSymbol(item.dataset.symbol);
+    });
+  });
+}
 
 async function loadWatchlistPrices() {
   try {
-    const resp = await fetch(`${API_BASE}/api/ticker`);
+    const symbolsQuery = WATCHLIST_SYMBOLS.join(',');
+    const resp = await fetch(`${API_BASE}/api/ticker?symbols=${encodeURIComponent(symbolsQuery)}`);
     if (!resp.ok) return;
     const data = await resp.json();
     (data.quotes || []).forEach(q => {
@@ -383,6 +438,14 @@ function loadSymbol(symbol, range, interval) {
   activeRange = range || activeRange;
   activeInterval = interval || activeInterval;
 
+  // Add symbol dynamically if not in watchlist
+  if (!WATCHLIST_SYMBOLS.includes(symbol)) {
+    WATCHLIST.unshift({ symbol, name: symbol });
+    WATCHLIST_SYMBOLS.unshift(symbol);
+    renderWatchlist();
+    loadWatchlistPrices();
+  }
+
   // Update watchlist active state
   document.querySelectorAll('.watchlist-item').forEach(el => {
     el.classList.toggle('active', el.dataset.symbol === symbol);
@@ -392,6 +455,8 @@ function loadSymbol(symbol, range, interval) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Render dynamic watchlist
+  renderWatchlist();
 
   // Timeframe buttons
   document.querySelectorAll('.tf-btn').forEach(btn => {
@@ -421,12 +486,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Watchlist clicks
-  document.querySelectorAll('.watchlist-item').forEach(item => {
-    item.addEventListener('click', () => {
-      loadSymbol(item.dataset.symbol);
-    });
-  });
 
   // Symbol search and autocomplete suggestions
   const input = document.getElementById('symbol-input');
