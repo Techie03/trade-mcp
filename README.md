@@ -16,6 +16,8 @@ pinned: false
 
 An elite, high-performance [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server providing real-time worldwide stock market data (including extensive **US & Indian markets**), technical indicators, historical data, company financials, news feeds, and native **Python data-science sandboxing** alongside **Groq/NVIDIA AI models**.
 
+https://github.com/Techie03/trade-mcp/assets/assets/public/intro_video.mp4
+
 ---
 
 ## 🏗️ System Architecture
