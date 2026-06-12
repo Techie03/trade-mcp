@@ -358,45 +358,23 @@ function updateInfoBar(q) {
   document.getElementById('sib-52h').textContent = fmt(q.fiftyTwoWeekHigh);
   document.getElementById('sib-52l').textContent = fmt(q.fiftyTwoWeekLow);
   document.getElementById('sib-vol').textContent = fmtVol(q.volume);
+
+  // Update watchlist name immediately on data retrieval
+  const targetSymbol = q.symbol || activeSymbol;
+  const wlItem = WATCHLIST.find(item => item.symbol === targetSymbol);
+  if (wlItem) {
+    wlItem.name = q.name || targetSymbol;
+    const nameEl = document.querySelector(`.watchlist-item[data-symbol="${targetSymbol}"] .wi-name`);
+    if (nameEl) {
+      nameEl.textContent = q.name || targetSymbol;
+    }
+  }
 }
 
 // ─── Watchlist ────────────────────────────────────────────────────────────────
 
-const WATCHLIST = [
-  // US Stocks
-  { symbol: 'AAPL', name: 'Apple Inc.' },
-  { symbol: 'MSFT', name: 'Microsoft Corp.' },
-  { symbol: 'NVDA', name: 'NVIDIA Corp.' },
-  { symbol: 'TSLA', name: 'Tesla Inc.' },
-  { symbol: 'GOOGL', name: 'Alphabet Inc.' },
-  { symbol: 'AMZN', name: 'Amazon.com' },
-  { symbol: 'META', name: 'Meta Platforms' },
-  { symbol: 'NFLX', name: 'Netflix Inc.' },
-  { symbol: 'AMD', name: 'AMD' },
-  { symbol: 'AVGO', name: 'Broadcom Inc.' },
-
-  // Indian Stocks (NSE)
-  { symbol: 'RELIANCE.NS', name: 'Reliance Ind.' },
-  { symbol: 'TCS.NS', name: 'Tata Consult.' },
-  { symbol: 'INFY.NS', name: 'Infosys Ltd' },
-  { symbol: 'HDFCBANK.NS', name: 'HDFC Bank' },
-  { symbol: 'ICICIBANK.NS', name: 'ICICI Bank' },
-  { symbol: 'TATAMOTORS.NS', name: 'Tata Motors' },
-  { symbol: 'SBIN.NS', name: 'SBI Bank' },
-  { symbol: 'BHARTIARTL.NS', name: 'Bharti Airtel' },
-
-  // Crypto
-  { symbol: 'BTC-USD', name: 'Bitcoin' },
-  { symbol: 'ETH-USD', name: 'Ethereum' },
-  { symbol: 'SOL-USD', name: 'Solana' },
-
-  // Forex & Indices
-  { symbol: 'EURUSD=X', name: 'EUR/USD' },
-  { symbol: '^NSEI', name: 'Nifty 50' },
-  { symbol: '^GSPC', name: 'S&P 500' }
-];
-
-const WATCHLIST_SYMBOLS = WATCHLIST.map(w => w.symbol);
+const WATCHLIST = [];
+const WATCHLIST_SYMBOLS = [];
 
 function renderWatchlist() {
   const wlContainer = document.getElementById('watchlist');
@@ -419,6 +397,7 @@ function renderWatchlist() {
 }
 
 async function loadWatchlistPrices() {
+  if (WATCHLIST_SYMBOLS.length === 0) return;
   try {
     const symbolsQuery = WATCHLIST_SYMBOLS.join(',');
     const resp = await fetch(`${API_BASE}/api/ticker?symbols=${encodeURIComponent(symbolsQuery)}`);
@@ -625,9 +604,12 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
         suggestionsList.innerHTML = suggestions.map(s => `
-          <div class="suggestion-item" data-symbol="${s.symbol}">
-            <span class="sym">${s.symbol}</span>
-            <span class="exch">${s.exchange || ''}</span>
+          <div class="suggestion-item" data-symbol="${s.symbol}" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; cursor: pointer;">
+            <div style="display: flex; flex-direction: column; gap: 2px; text-align: left; max-width: 140px;">
+              <span class="sym" style="font-weight: 600; color: var(--text);">${s.symbol}</span>
+              <span class="name" style="font-size: 10px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${s.name || ''}</span>
+            </div>
+            <span class="exch" style="font-size: 10px; color: var(--text-3); font-weight: 500;">${s.exchange || ''}</span>
           </div>
         `).join('');
         suggestionsList.classList.remove('hidden');
@@ -655,14 +637,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  const submit = () => {
-    const val = input.value.trim().toUpperCase();
-    if (val) {
-      loadSymbol(val);
+  const submit = async () => {
+    const val = input.value.trim();
+    if (!val) return;
+
+    const uppercaseVal = val.toUpperCase();
+    if (WATCHLIST_SYMBOLS.includes(uppercaseVal)) {
+      loadSymbol(uppercaseVal);
       input.value = '';
       suggestionsList.innerHTML = '';
       suggestionsList.classList.add('hidden');
+      return;
     }
+
+    try {
+      const resp = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(val)}`);
+      if (resp.ok) {
+        const suggestions = await resp.json();
+        if (suggestions && suggestions.length > 0) {
+          const bestMatch = suggestions[0].symbol;
+          loadSymbol(bestMatch);
+        } else {
+          loadSymbol(uppercaseVal);
+        }
+      } else {
+        loadSymbol(uppercaseVal);
+      }
+    } catch {
+      loadSymbol(uppercaseVal);
+    }
+
+    input.value = '';
+    suggestionsList.innerHTML = '';
+    suggestionsList.classList.add('hidden');
   };
   btn.addEventListener('click', submit);
   input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
